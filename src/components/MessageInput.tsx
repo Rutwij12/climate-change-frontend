@@ -19,7 +19,7 @@ export default function MessageInput({ input, setInput, handleSubmit }: MessageI
             className="flex-1 min-h-[40px] max-h-60 text-lg p-2 bg-transparent outline-none resize-none"
           />
         </div>
-        <button className="absolute bottom-2 right-2 bg-black text-white p-3 rounded-full hover:bg-gray-800 transition">
+        <button className="absolute bottom-2 right-2 bg-green-700 text-white p-3 rounded-full hover:bg-green-800 transition">
           <SendHorizontal className="h-5 w-5" />
         </button>
       </div>

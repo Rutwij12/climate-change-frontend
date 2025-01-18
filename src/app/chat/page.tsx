@@ -1,10 +1,11 @@
-"use client";
-import React, { useState } from 'react';
+'use client';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import MessageList from '@/components/MessageList';
 import MessageInput from '@/components/MessageInput';
 import { ChatMessage_T, LLMResponse } from '@/types';
-import { CloudRain, Fish } from 'lucide-react'
+import { CloudRain, Fish } from 'lucide-react';
 
 const mockLLMResponse: LLMResponse = {
   summary: "Climate change poses significant challenges to global sustainability efforts.",
@@ -30,13 +31,24 @@ const mockLLMResponse: LLMResponse = {
       citation: "IPBES, 2019: Global Assessment Report on Biodiversity and Ecosystem Services.",
       icon: Fish
     }
-    // Add more challenges...
   ]
 };
 
 export default function ClimateChat() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get('q') || ''; // Retrieve the query parameter from the URL
   const [messages, setMessages] = useState<ChatMessage_T[]>([]);
   const [input, setInput] = useState('');
+
+  useEffect(() => {
+    if (initialQuery) {
+      // Simulate submitting the initial query
+      const initialUserMessage: ChatMessage_T = { id: Date.now(), type: 'user', content: initialQuery };
+      const initialLLMMessage: ChatMessage_T = { id: Date.now() + 1, type: 'llm', content: mockLLMResponse };
+      setMessages([initialUserMessage, initialLLMMessage]);
+      setInput(''); // Clear the input to avoid rendering the query in the input box
+    }
+  }, [initialQuery]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
