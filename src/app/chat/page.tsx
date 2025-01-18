@@ -1,5 +1,6 @@
 'use client';
-import React, { useEffect, useState, Suspense } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import MessageList from '@/components/MessageList';
@@ -35,12 +36,12 @@ const mockLLMResponse: LLMResponse = {
 };
 
 export default function ClimateChat() {
+  const searchParams = useSearchParams(); // Hook for getting query parameters
   const [messages, setMessages] = useState<ChatMessage_T[]>([]);
   const [input, setInput] = useState('');
-  const searchParams = useSearchParams(); // Using searchParams with Suspense boundary
 
   useEffect(() => {
-    const initialQuery = searchParams.get('q') || ''; // Retrieve query parameter
+    const initialQuery = searchParams.get('q') || ''; // Get the 'q' query parameter
 
     if (initialQuery) {
       const initialUserMessage: ChatMessage_T = { id: Date.now(), type: 'user', content: initialQuery };
@@ -60,19 +61,17 @@ export default function ClimateChat() {
   };
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <div className="flex flex-col h-screen">
-        {/* Header */}
-        <Header />
+    <div className="flex flex-col h-screen">
+      {/* Header */}
+      <Header />
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto bg-green-50">
-          <MessageList messages={messages} />
-        </div>
-
-        {/* Fixed Input */}
-        <MessageInput input={input} setInput={setInput} handleSubmit={handleSubmit} />
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto bg-green-50">
+        <MessageList messages={messages} />
       </div>
-    </Suspense>
+
+      {/* Fixed Input */}
+      <MessageInput input={input} setInput={setInput} handleSubmit={handleSubmit} />
+    </div>
   );
 }
