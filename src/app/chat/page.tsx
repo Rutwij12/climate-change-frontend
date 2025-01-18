@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import MessageList from '@/components/MessageList';
@@ -60,17 +60,19 @@ export default function ClimateChat() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      {/* Header */}
-      <Header />
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className="flex flex-col h-screen">
+        {/* Header */}
+        <Header />
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto bg-green-50">
-        <MessageList messages={messages} />
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto bg-green-50">
+          <MessageList messages={messages} />
+        </div>
+
+        {/* Fixed Input */}
+        <MessageInput input={input} setInput={setInput} handleSubmit={handleSubmit} />
       </div>
-
-      {/* Fixed Input */}
-      <MessageInput input={input} setInput={setInput} handleSubmit={handleSubmit} />
-    </div>
+    </Suspense>
   );
 }
