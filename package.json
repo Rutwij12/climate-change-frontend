@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "test": "jest",
+    "deploy": "vercel", 
     "start": "next start",
     "lint": "next lint"
   },
