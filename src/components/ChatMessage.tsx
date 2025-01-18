@@ -9,7 +9,7 @@ export default function ChatMessage({ message }: { message: ChatMessage_T }) {
   if (message.type === 'user') {
     return (
       <div className="mb-4 text-right">
-        <Card className="inline-block max-w-md bg-green-100 border-green-200 mx-auto text-center">
+        <Card className="inline-block max-w-md bg-green-100 border-green-200 mx-auto text-center p-2">
           <CardContent className="p-2">
             <p className="text-lg font-medium break-words">{message.content as string}</p>
           </CardContent>
