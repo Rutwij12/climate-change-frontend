@@ -18,3 +18,9 @@ export interface ChatMessage_T {
   type: 'user' | 'llm';
   content: string | LLMResponse;
 }
+
+export interface MessageInputProps {
+  input: string; // `input` should be a string (the value of the textarea)
+  setInput: (value: string) => void; // `setInput` is a function to update the input value
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void; // `handleSubmit` handles form submission
+}

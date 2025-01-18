@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import React from 'react';
 import "./globals.css";
 
 const geistSans = Geist({

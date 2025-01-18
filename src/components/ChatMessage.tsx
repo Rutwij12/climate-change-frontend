@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { ChatMessage_T } from '@/types';
+import { Challenge, ChatMessage_T, LLMResponse } from '@/types';
 
 export default function ChatMessage({ message }: { message: ChatMessage_T }) {
   if (message.type === 'user') {
@@ -18,7 +18,7 @@ export default function ChatMessage({ message }: { message: ChatMessage_T }) {
     );
   }
 
-  const { summary, challenges } = message.content as any;
+  const { summary, challenges } = message.content as LLMResponse;
 
   return (
     <div className="mb-4 text-left">
@@ -26,7 +26,7 @@ export default function ChatMessage({ message }: { message: ChatMessage_T }) {
         <CardContent className="p-6">
           <p className="text-lg font-semibold mb-4 text-green-800 break-words">{summary}</p>
           <div className="grid gap-4">
-            {challenges.map((challenge: any) => (
+            {challenges.map((challenge: Challenge) => (
               <Link href={`/challenge/${challenge.id}`} key={challenge.id}>
                 <Card className="bg-white hover:bg-green-50 transition-colors cursor-pointer border-green-200">
                   <CardHeader className="flex flex-row items-center gap-2">

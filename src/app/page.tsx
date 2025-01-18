@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import MessageList from '@/components/MessageList';
 import MessageInput from '@/components/MessageInput';
 import { ChatMessage_T, LLMResponse } from '@/types';
-import { SendHorizontal, Leaf, CloudRain, Fish, ArrowRight } from 'lucide-react'
+import { CloudRain, Fish } from 'lucide-react'
 
 const mockLLMResponse: LLMResponse = {
   summary: "Climate change poses significant challenges to global sustainability efforts.",

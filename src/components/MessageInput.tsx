@@ -1,8 +1,9 @@
 "use client";
 import React from 'react';
 import { SendHorizontal } from 'lucide-react';
+import { MessageInputProps } from '@/types';
 
-export default function MessageInput({ input, setInput, handleSubmit }: any) {
+export default function MessageInput({ input, setInput, handleSubmit }: MessageInputProps) {
   return (
     <form onSubmit={handleSubmit} className="p-2 bg-green-50">
       <div className="relative w-full max-w-4xl mx-auto">
