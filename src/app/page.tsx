@@ -68,25 +68,30 @@ export default function ClimateChat() {
   }
 
   return (
-    <div className="flex h-screen bg-green-50">
-      <div className="flex-1 flex flex-col max-w-4xl mx-auto">
-        <header className="bg-green-700 text-white p-4 flex items-center">
-          <Leaf className="mr-2" />
-          <h1 className="text-2xl font-bold">Climate Change Chat</h1>
-        </header>
-        <ScrollArea className="flex-1 p-4">
+    <div className="flex flex-col h-screen w-screen">
+      {/* Header */}
+      <header className="bg-green-700 text-white p-4 flex items-center justify-center h-16">
+        <Leaf className="mr-2" />
+        <h1 className="text-2xl font-bold">Climate Change Chat</h1>
+      </header>
+
+      {/* Scrollable Content Area */}
+      <ScrollArea className="flex-1 w-full bg-green-50">
+        <div className="max-w-4xl mx-auto p-4">
           {messages.map((message) => (
             <div key={message.id} className={`mb-4 ${message.type === 'user' ? 'text-right' : 'text-left'}`}>
               {message.type === 'user' ? (
-                <Card className="inline-block max-w-md bg-green-100 border-green-200">
-                  <CardContent className="p-4">
-                    <p>{message.content as string}</p>
+                <Card className="inline-block max-w-md bg-green-100 border-green-200 mx-auto text-center">
+                  <CardContent className="p-2">
+                    <p className="text-lg font-medium break-words">{message.content as string}</p>
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="inline-block max-w-2xl border-green-200">
-                  <CardContent className="p-4">
-                    <p className="font-semibold mb-4 text-green-800">{(message.content as LLMResponse).summary}</p>
+                <Card className="inline-block max-w-2xl border-green-200 mx-auto text-center">
+                  <CardContent className="p-6">
+                    <p className="text-lg font-semibold mb-4 text-green-800 break-words">
+                      {(message.content as LLMResponse).summary}
+                    </p>
                     <div className="grid gap-4">
                       {(message.content as LLMResponse).challenges.map((challenge) => (
                         <Link href={`/challenge/${challenge.id}`} key={challenge.id}>
@@ -111,13 +116,16 @@ export default function ClimateChat() {
               )}
             </div>
           ))}
-        </ScrollArea>
-        <form onSubmit={handleSubmit} className="p-4 bg-none border-none">
-          <div className="relative w-full max-w-2xl mx-auto p-4">
+        </div>
+      </ScrollArea>
+
+      {/* Input Area */}
+        <form onSubmit={handleSubmit} className="p-2 bg-green-50">
+          <div className="relative w-full max-w-4xl mx-auto">
             {/* Input Box */}
-            <div className="flex items-center p-4 border-2 border-green-800 rounded-3xl bg-transparent">
+            <div className="flex items-center px-4 py-2 border-2 border-green-800 rounded-3xl bg-transparent backdrop-blur-sm">
               <textarea
-                placeholder="Ask about climate change"
+                placeholder="Ask about climate change..."
                 value={input}
                 onChange={(e) => {
                   setInput(e.target.value)
@@ -128,14 +136,12 @@ export default function ClimateChat() {
               />
             </div>
 
-            {/* Send Button (Bottom Right) */}
-            <button className="absolute bottom-5 right-5 bg-black text-white p-3 rounded-full hover:bg-gray-800 transition">
+            {/* Send Button */}
+            <button className="absolute bottom-2 right-2 bg-black text-white p-3 rounded-full hover:bg-gray-800 transition">
               <SendHorizontal className="h-5 w-5" />
             </button>
           </div>
         </form>
-      </div>
     </div>
   )
 }
-
