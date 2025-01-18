@@ -113,20 +113,25 @@ export default function ClimateChat() {
           ))}
         </ScrollArea>
         <form onSubmit={handleSubmit} className="p-4 bg-none border-none">
-          <div className="flex items-center">
-            <textarea
-              placeholder="Ask about climate change..."
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value)
-                e.target.style.height = "auto"  // Reset height
-                e.target.style.height = `${e.target.scrollHeight}px`  // Adjust height
-              }}
-              className="flex-1 min-h-[56px] max-h-40 text-lg p-4 rounded-l-full border-green-300 focus:ring-green-500 focus:border-green-500 overflow-hidden resize-none"
-            />
-            <Button type="submit" size="icon" className="rounded-r-full bg-green-600 hover:bg-green-700">
-              <SendHorizontal className="h-4 w-4" />
-            </Button>
+          <div className="relative w-full max-w-2xl mx-auto p-4">
+            {/* Input Box */}
+            <div className="flex items-center p-4 border-2 border-green-800 rounded-3xl bg-transparent">
+              <textarea
+                placeholder="Ask about climate change"
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value)
+                  e.target.style.height = "auto"
+                  e.target.style.height = `${e.target.scrollHeight}px`
+                }}
+                className="flex-1 min-h-[40px] max-h-60 text-lg p-2 bg-transparent outline-none resize-none"
+              />
+            </div>
+
+            {/* Send Button (Bottom Right) */}
+            <button className="absolute bottom-5 right-5 bg-black text-white p-3 rounded-full hover:bg-gray-800 transition">
+              <SendHorizontal className="h-5 w-5" />
+            </button>
           </div>
         </form>
       </div>
