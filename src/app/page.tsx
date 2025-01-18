@@ -114,12 +114,15 @@ export default function ClimateChat() {
         </ScrollArea>
         <form onSubmit={handleSubmit} className="p-4 bg-none border-none">
           <div className="flex items-center">
-            <Input
-              type="text"
+            <textarea
               placeholder="Ask about climate change..."
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              className="flex-1 rounded-l-full border-green-300 focus:ring-green-500 focus:border-green-500"
+              onChange={(e) => {
+                setInput(e.target.value)
+                e.target.style.height = "auto"  // Reset height
+                e.target.style.height = `${e.target.scrollHeight}px`  // Adjust height
+              }}
+              className="flex-1 min-h-[56px] max-h-40 text-lg p-4 rounded-l-full border-green-300 focus:ring-green-500 focus:border-green-500 overflow-hidden resize-none"
             />
             <Button type="submit" size="icon" className="rounded-r-full bg-green-600 hover:bg-green-700">
               <SendHorizontal className="h-4 w-4" />
