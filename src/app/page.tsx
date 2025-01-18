@@ -112,7 +112,7 @@ export default function ClimateChat() {
             </div>
           ))}
         </ScrollArea>
-        <form onSubmit={handleSubmit} className="p-4 bg-white border-t border-green-200">
+        <form onSubmit={handleSubmit} className="p-4 bg-none border-none">
           <div className="flex items-center">
             <Input
               type="text"
