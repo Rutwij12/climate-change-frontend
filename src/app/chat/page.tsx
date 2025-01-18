@@ -15,40 +15,39 @@ const mockLLMResponse: LLMResponse = {
       name: "Rising Sea Levels",
       explanation: "Coastal communities are at risk due to melting ice caps and thermal expansion of oceans.",
       citation: "IPCC, 2021: Climate Change 2021: The Physical Science Basis.",
-      icon: CloudRain
+      icon: CloudRain,
     },
     {
       id: "extreme-weather-events",
       name: "Extreme Weather Events",
       explanation: "Increased frequency and intensity of hurricanes, droughts, and heatwaves threaten ecosystems and human settlements.",
       citation: "World Meteorological Organization, State of the Global Climate 2020.",
-      icon: CloudRain
+      icon: CloudRain,
     },
     {
       id: "biodiversity-loss",
       name: "Biodiversity Loss",
       explanation: "Rapid changes in temperature and precipitation patterns lead to habitat destruction and species extinction.",
       citation: "IPBES, 2019: Global Assessment Report on Biodiversity and Ecosystem Services.",
-      icon: Fish
-    }
-  ]
+      icon: Fish,
+    },
+  ],
 };
 
 export default function ClimateChat() {
-  const searchParams = useSearchParams();
-  const initialQuery = searchParams.get('q') || ''; // Retrieve the query parameter from the URL
   const [messages, setMessages] = useState<ChatMessage_T[]>([]);
   const [input, setInput] = useState('');
+  const searchParams = useSearchParams(); // Using searchParams with Suspense boundary
 
   useEffect(() => {
+    const initialQuery = searchParams.get('q') || ''; // Retrieve query parameter
+
     if (initialQuery) {
-      // Simulate submitting the initial query
       const initialUserMessage: ChatMessage_T = { id: Date.now(), type: 'user', content: initialQuery };
       const initialLLMMessage: ChatMessage_T = { id: Date.now() + 1, type: 'llm', content: mockLLMResponse };
       setMessages([initialUserMessage, initialLLMMessage]);
-      setInput(''); // Clear the input to avoid rendering the query in the input box
     }
-  }, [initialQuery]);
+  }, [searchParams]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
