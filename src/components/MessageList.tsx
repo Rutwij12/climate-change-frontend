@@ -4,14 +4,20 @@ import ChatMessage from "./ChatMessage";
 import { ChatMessage_T as ChatMessageType } from "@/types";
 
 /**
- * Displays user prompt and LLM responses
- * @param param0 
- * @returns 
+ * MessageList Component
+ * 
+ * Renders a list of chat messages, including user inputs and LLM responses.
+ * Automatically scrolls to the latest user message when new messages are added.
+ * 
+ * @param {Object} props - Component props
+ * @param {ChatMessageType[]} props.messages - Array of chat messages
+ * @returns {JSX.Element} The rendered MessageList component
  */
 export default function MessageList({ messages }: { messages: ChatMessageType[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const userMessageRef = useRef<HTMLDivElement>(null);
 
+  // Effect to auto-scroll to the latest user message when messages update.
   useEffect(() => {
     if (messages && userMessageRef.current) {
       userMessageRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
