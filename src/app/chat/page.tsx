@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import MessageList from '@/components/MessageList';
@@ -35,7 +35,7 @@ const mockLLMResponse: LLMResponse = {
   ],
 };
 
-export default function ClimateChat() {
+function ClimateChatContent() {
   const searchParams = useSearchParams(); // Hook for getting query parameters
   const [messages, setMessages] = useState<ChatMessage_T[]>([]);
   const [input, setInput] = useState('');
@@ -73,5 +73,13 @@ export default function ClimateChat() {
       {/* Fixed Input */}
       <MessageInput input={input} setInput={setInput} handleSubmit={handleSubmit} />
     </div>
+  );
+}
+
+export default function ClimateChat() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ClimateChatContent />
+    </Suspense>
   );
 }
