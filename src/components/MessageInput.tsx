@@ -3,7 +3,22 @@ import React from 'react';
 import { SendHorizontal } from 'lucide-react';
 import { MessageInputProps } from '@/types';
 
+/**
+ * Handle user prompt
+ * @param param0 
+ * @returns 
+ */
+
 export default function MessageInput({ input, setInput, handleSubmit }: MessageInputProps) {
+
+  // Pressing allow submits the input
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Prevents new line
+      handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>); // Submit the form
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="p-2 bg-green-50">
       <div className="relative w-full max-w-4xl mx-auto">
@@ -16,6 +31,7 @@ export default function MessageInput({ input, setInput, handleSubmit }: MessageI
               e.target.style.height = 'auto';
               e.target.style.height = `${e.target.scrollHeight}px`;
             }}
+            onKeyDown={handleKeyDown}
             className="flex-1 min-h-[40px] max-h-60 text-lg p-2 bg-transparent outline-none resize-none"
           />
         </div>
