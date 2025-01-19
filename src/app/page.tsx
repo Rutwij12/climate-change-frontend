@@ -17,8 +17,8 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <h1 className="text-4xl font-bold mb-8 text-gray-800">What can I help you with?</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-green-50 to-green-100">
+      <h1 className="text-4xl font-bold mb-8 text-green-800">What can I help you with?</h1>
       <form onSubmit={handleSubmit} className="w-full max-w-md">
         <div className="flex space-x-2">
           <Input
@@ -26,12 +26,16 @@ export default function Home() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Type your question here..."
-            className="flex-grow"
+            className="flex-grow border-green-300 focus:border-green-500 focus:ring-green-500"
           />
-          <Button type="submit">Ask</Button>
+          <Button
+            type="submit"
+            className="bg-green-500 hover:bg-green-600 text-white"
+          >
+            Ask
+          </Button>
         </div>
       </form>
     </div>
   )
 }
-
