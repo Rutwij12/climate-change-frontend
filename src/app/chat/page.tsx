@@ -71,7 +71,9 @@ function ClimateChatContent() {
       </div>
 
       {/* Fixed Input */}
-      <MessageInput input={input} setInput={setInput} handleSubmit={handleSubmit} />
+      <div className="bg-green-50 pb-6">
+        <MessageInput input={input} setInput={setInput} handleSubmit={handleSubmit} />
+      </div>
     </div>
   );
 }
