@@ -40,8 +40,8 @@ jobs:
       - name: Build Project
         run: npm run build
 
-      # Step 7: Deploy to Vercel
-      - name: Deploy to Vercel
-        run: npx vercel --prod --yes
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      # # Step 7: Deploy to Vercel
+      # - name: Deploy to Vercel
+      #   run: npx vercel --prod --yes
+      #   env:
+      #     VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
