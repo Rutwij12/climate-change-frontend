@@ -23,10 +23,10 @@ export default function LLMResponseMessage({
   return (
     <div className="mb-4 text-left">
       {/* Main Card displaying the AI-generated response */}
-      <Card className="inline-block max-w-2xl border-green-200 mx-auto text-center">
+      <Card className="inline-block max-w-2xl border-green-200 mx-auto text-center bg-green-100">
         <CardContent className="p-6">
           {/* Summary text with styling */}
-          <p className="text-lg font-semibold mb-4 text-green-800 break-words">
+          <p className="text-lg font-semibold mb-4 text-green-800 break-words text-left">
             {summary}
           </p>
 
