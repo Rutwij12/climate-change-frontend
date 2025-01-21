@@ -15,7 +15,9 @@ import { Card, CardContent } from "@/components/ui/card";
  */
 export default function UserMessage({ content }: { content: string }) {
   return (
-    <div className="mb-2 flex justify-end">
+    <div className="mb-2 flex justify-end"
+      data-testid="outer-container"
+    >
       {/* Right-aligned chat bubble with max width and rounded edges */}
       <Card className="inline-block max-w-md bg-green-100 border-green-200 p-0 rounded-2xl shadow-sm">
         <CardContent className="p-1">

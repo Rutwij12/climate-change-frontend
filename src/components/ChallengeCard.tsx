@@ -7,10 +7,19 @@ import { Challenge } from "@/types";
 
 export default function ChallengeCard({ challenge }: { challenge: Challenge }) {
   return (
-    <Link href={`/challenge/${challenge.id}`} key={challenge.id}>
-      <Card className="bg-white hover:bg-green-50 transition-colors cursor-pointer border-green-200">
+    <Link 
+      href={`/challenge/${challenge.id}`} key={challenge.id}
+      data-testid="challenge-link"
+    >
+      <Card 
+        className="bg-white hover:bg-green-50 transition-colors cursor-pointer border-green-200"
+        data-testid="challenge-card"
+      >
         <CardHeader className="flex flex-row items-center gap-2">
-          <challenge.icon className="h-5 w-5 text-green-600" />
+          <challenge.icon 
+            className="h-5 w-5 text-green-600" 
+            data-testid="challenge-icon" 
+          />
           <CardTitle className="text-lg text-green-800">{challenge.name}</CardTitle>
         </CardHeader>
         <CardContent>

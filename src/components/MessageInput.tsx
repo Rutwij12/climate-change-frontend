@@ -42,7 +42,8 @@ export default function MessageInput({ input, setInput, handleSubmit }: MessageI
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-2 bg-green-50">
+    <form onSubmit={handleSubmit} className="p-2 bg-green-50"
+      data-testid="message-input-form">
       <div className="relative w-full max-w-4xl mx-auto">
         <div className="flex items-center px-4 py-2 border-2 border-green-800 rounded-3xl bg-transparent backdrop-blur-sm">
           <textarea
