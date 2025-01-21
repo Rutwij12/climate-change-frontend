@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Leaf, CloudRain, Fish, ArrowLeft } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 interface Challenge {
   id: string;
@@ -41,8 +41,15 @@ const challenges: Challenge[] = [
   },
 ];
 
+/**
+ * ChallengePage Component
+ * Displays details of a selected climate change challenge
+ *
+ * @returns {JSX.Element} The ChallengePage component
+ */
 export default function ChallengePage() {
   const params = useParams(); // Access dynamic route params
+  const router = useRouter();
   const challenge = challenges.find((c) => c.id === params.id);
 
   if (!challenge) {
@@ -50,40 +57,46 @@ export default function ChallengePage() {
       <div className="min-h-screen bg-green-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl text-red-500 font-bold mb-4">Challenge not found</h1>
-          <Link href="/">
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button 
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => router.back()}
+            >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Chat
             </Button>
-          </Link>
         </div>
       </div>
     );
   }
 
-  const Icon = challenge.icon;
+  const Icon = challenge.icon; // Extract icon component for reusability
 
   return (
     <div className="min-h-screen bg-green-50 flex flex-col">
+
       <header className="bg-green-700 text-white p-4 flex items-center">
         <Leaf className="mr-2" />
         <h1 className="text-2xl font-bold">Climate Change Challenge</h1>
       </header>
+
       <main className="flex-1 flex items-center justify-center p-4">
         <Card className="max-w-2xl w-full border-green-200">
+
           <CardHeader className="flex flex-row items-center gap-2 border-b border-green-100">
             <Icon className="h-6 w-6 text-green-600" />
             <CardTitle className="text-2xl text-green-800">{challenge.name}</CardTitle>
           </CardHeader>
+
           <CardContent className="pt-6">
             <p className="mb-6 text-gray-700 leading-relaxed">{challenge.explanation}</p>
             <p className="text-sm text-gray-500 mb-6">Source: {challenge.citation}</p>
-            <Link href="/">
-              <Button className="bg-green-600 hover:bg-green-700">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Chat
-              </Button>
-            </Link>
+            <Button 
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Chat
+            </Button>
           </CardContent>
         </Card>
       </main>
