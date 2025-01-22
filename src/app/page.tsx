@@ -4,15 +4,17 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { useChatContext } from '@/lib/ChatContent';
 
 export default function Home() {
-  const [query, setQuery] = useState('')
+  const {query, setQuery, setMessages} = useChatContext();
   const router = useRouter()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (query.trim()) {
-      router.push(`/chat?q=${encodeURIComponent(query)}`)
+      setMessages([]); // Clear messages before navigating
+      router.push('/chat');
     }
   }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
+import { useChatContext } from '@/lib/ChatContent';
 import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import MessageList from '@/components/MessageList';
@@ -36,19 +37,18 @@ const mockLLMResponse: LLMResponse = {
 };
 
 function ClimateChatContent() {
-  const searchParams = useSearchParams(); // Hook for getting query parameters
-  const [messages, setMessages] = useState<ChatMessage_T[]>([]);
+  const { query, setQuery, messages, setMessages } = useChatContext();
   const [input, setInput] = useState('');
 
   useEffect(() => {
-    const initialQuery = searchParams.get('q') || ''; // Get the 'q' query parameter
-
-    if (initialQuery) {
-      const initialUserMessage: ChatMessage_T = { id: Date.now(), type: 'user', content: initialQuery };
+    if (query) {
+      const initialUserMessage: ChatMessage_T = { id: Date.now(), type: 'user', content: query };
       const initialLLMMessage: ChatMessage_T = { id: Date.now() + 1, type: 'llm', content: mockLLMResponse };
       setMessages([initialUserMessage, initialLLMMessage]);
+
+      setQuery(''); // Clear query after processing
     }
-  }, [searchParams]);
+  }, [query, setMessages, setQuery]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
