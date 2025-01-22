@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useChatContext } from '@/lib/ChatContent';
-import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import MessageList from '@/components/MessageList';
 import MessageInput from '@/components/MessageInput';
