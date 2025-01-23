@@ -45,7 +45,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     try {
       const response = await axios({
         method: "post",
-        url: `${process.env.BACKEND_URL}/api/reports/query/api/reports/query`,
+        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/query/api/reports/query`,
         data: { query: content, chat_id: "1" },
         responseType: "stream",
         headers: {
