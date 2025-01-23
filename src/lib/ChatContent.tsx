@@ -51,7 +51,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           "Content-Type": "application/json",
         },
         onDownloadProgress: (progressEvent) => {
-          let chunk = progressEvent.event.target.response;
+          const chunk = progressEvent.event.target.response;
           if (chunk) {
             console.log("chunk:", chunk);
             let accumulatedText = chunk;
