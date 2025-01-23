@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { ChatMessage_T } from "@/types";
-import { CloudRain, Fish } from "lucide-react";
+import { CloudRain } from "lucide-react";
 import axios from "axios";
 
 // Define the shape of the context
@@ -22,7 +22,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [messages, setMessages] = useState<ChatMessage_T[]>([]);
   const [query, setQuery] = useState("");
-  const [currentStreamingMessage, setCurrentStreamingMessage] = useState("");
 
   const createNewMessages = async (content: string) => {
     const userMessage: ChatMessage_T = {
@@ -31,7 +30,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       content,
     };
 
-    setCurrentStreamingMessage("");
     const emptyLLMMessage: ChatMessage_T = {
       id: Date.now() + 1,
       type: "llm",
@@ -43,7 +41,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     setMessages((prev) => [...prev, userMessage, emptyLLMMessage]);
 
     try {
-      const response = await axios({
+      await axios({
         method: "post",
         url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/query`,
         data: { query: content, chat_id: "1" },
@@ -55,7 +53,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         onDownloadProgress: (progressEvent) => {
           const chunk = progressEvent.event.target.response;
           if (chunk) {
-            setCurrentStreamingMessage(chunk);
             let accumulatedText = chunk;
             accumulatedText = accumulatedText.replace("```", "");
             accumulatedText = accumulatedText.replace("json", "");

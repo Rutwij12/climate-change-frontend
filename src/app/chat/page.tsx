@@ -1,15 +1,13 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useState, Suspense } from "react";
 import { useChatContext } from "@/lib/ChatContent";
 import Header from "@/components/Header";
 import MessageList from "@/components/MessageList";
 import MessageInput from "@/components/MessageInput";
-import { ChatMessage_T, LLMResponse, Challenge } from "@/types";
-import axios from "axios";
 
 function ClimateChatContent() {
-  const { query, setQuery, messages, createNewMessages } = useChatContext();
+  const { messages, createNewMessages } = useChatContext();
   const [input, setInput] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
