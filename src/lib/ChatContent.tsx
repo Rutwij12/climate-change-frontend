@@ -51,8 +51,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           "Content-Type": "application/json",
         },
         onDownloadProgress: (progressEvent) => {
-          const chunk = progressEvent.event.target.response;
+          let chunk = progressEvent.event.target.response;
           if (chunk) {
+            console.log("chunk:", chunk);
             let accumulatedText = chunk;
             accumulatedText = accumulatedText.replace("```", "");
             accumulatedText = accumulatedText.replace("json", "");
