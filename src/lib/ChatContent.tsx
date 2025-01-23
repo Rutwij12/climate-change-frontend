@@ -6,16 +6,18 @@ import { ChatMessage_T } from "@/types";
 // Define the shape of the context
 interface ChatContextType {
   messages: ChatMessage_T[];
-  setMessages: (messages: ChatMessage_T[]) => void;
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage_T[]>>;
   query: string;
-  setQuery: (query: string) => void;
+  setQuery: React.Dispatch<React.SetStateAction<string>>;
 }
 
 // Create the context
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 // Provider component to wrap the application
-export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ChatProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [messages, setMessages] = useState<ChatMessage_T[]>([]);
   const [query, setQuery] = useState("");
 
