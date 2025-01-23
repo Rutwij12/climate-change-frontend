@@ -2,13 +2,15 @@
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { ChatMessage_T } from "@/types";
+import { CloudRain, Fish } from "lucide-react";
+import axios from "axios";
 
 // Define the shape of the context
 interface ChatContextType {
   messages: ChatMessage_T[];
-  setMessages: React.Dispatch<React.SetStateAction<ChatMessage_T[]>>;
   query: string;
   setQuery: React.Dispatch<React.SetStateAction<string>>;
+  createNewMessages: (content: string) => Promise<void>;
 }
 
 // Create the context
@@ -20,9 +22,112 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [messages, setMessages] = useState<ChatMessage_T[]>([]);
   const [query, setQuery] = useState("");
+  const [currentStreamingMessage, setCurrentStreamingMessage] = useState("");
+
+  const createNewMessages = async (content: string) => {
+    const userMessage: ChatMessage_T = {
+      id: Date.now(),
+      type: "user",
+      content,
+    };
+
+    setCurrentStreamingMessage("");
+    const emptyLLMMessage: ChatMessage_T = {
+      id: Date.now() + 1,
+      type: "llm",
+      content: {
+        summary: "",
+        challenges: [],
+      },
+    };
+    setMessages((prev) => [...prev, userMessage, emptyLLMMessage]);
+
+    try {
+      const response = await axios({
+        method: "post",
+        url: "http://0.0.0.0:8000/api/reports/query",
+        data: { query: content, chat_id: "1" },
+        responseType: "stream",
+        headers: {
+          Accept: "text/event-stream",
+          "Content-Type": "application/json",
+        },
+        onDownloadProgress: (progressEvent) => {
+          const chunk = progressEvent.event.target.response;
+          if (chunk) {
+            setCurrentStreamingMessage(chunk);
+            let accumulatedText = chunk;
+            accumulatedText = accumulatedText.replace("```", "");
+            accumulatedText = accumulatedText.replace("json", "");
+            accumulatedText = accumulatedText.replace("markdown", "");
+            const jsonStartIndex = accumulatedText.indexOf("{");
+
+            if (jsonStartIndex !== -1) {
+              const summary = accumulatedText
+                .substring(0, jsonStartIndex)
+                .trim();
+              const jsonText = accumulatedText.substring(jsonStartIndex);
+
+              const topicsRegex = /["']topic["']:\s*["']([^"']*)["']/g;
+              const sourcesRegex = /["']source["']:\s*["']([^"']*)["']/g;
+
+              const topics: string[] = [];
+              const sources: string[] = [];
+
+              let topicMatch;
+              while ((topicMatch = topicsRegex.exec(jsonText)) !== null) {
+                topics.push(topicMatch[1]);
+              }
+
+              let sourceMatch;
+              while ((sourceMatch = sourcesRegex.exec(jsonText)) !== null) {
+                sources.push(sourceMatch[1]);
+              }
+
+              const challenges = topics.map((topic, index) => ({
+                id: `topic-${index}`,
+                name: topic,
+                explanation: "",
+                citation: sources[index] || "",
+                icon: CloudRain,
+              }));
+
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = {
+                  ...newMessages[newMessages.length - 1],
+                  content: {
+                    summary,
+                    challenges,
+                  },
+                };
+                return newMessages;
+              });
+            } else {
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = {
+                  ...newMessages[newMessages.length - 1],
+                  content: {
+                    summary: accumulatedText,
+                    challenges: [],
+                  },
+                };
+                return newMessages;
+              });
+            }
+          }
+        },
+      });
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
 
   return (
-    <ChatContext.Provider value={{ messages, setMessages, query, setQuery }}>
+    <ChatContext.Provider
+      value={{ messages, query, setQuery, createNewMessages }}
+    >
       {children}
     </ChatContext.Provider>
   );
