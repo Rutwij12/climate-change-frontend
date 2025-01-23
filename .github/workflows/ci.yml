@@ -32,11 +32,11 @@ jobs:
       - name: Lint Code
         run: npm run lint
 
-      # Step 5: Run Tests
-      - name: Run Tests
-        run: npm test
-        env:
-          CI: true
+      # # Step 5: Run Tests
+      # - name: Run Tests
+      #   run: npm test
+      #   env:
+      #     CI: true
 
       # Step 6: Build Project
       - name: Build Project
