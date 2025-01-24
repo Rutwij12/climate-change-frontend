@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 import { Challenge } from "@/types";
