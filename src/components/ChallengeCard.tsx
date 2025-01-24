@@ -20,12 +20,12 @@ import { Challenge } from "@/types";
  */
 export default function ChallengeCard({ challenge }: { challenge: Challenge }) {
   return (
-    <Link
-      href={`/challenge/${challenge.id}`}
-      key={challenge.id}
-      data-testid="challenge-link"
-      role="link"
-    >
+    // <Link
+    //   href={`/challenge/${challenge.id}`}
+    //   key={challenge.id}
+    //   data-testid="challenge-link"
+    //   role="link"
+    // >
       <Card
         className="bg-green-50 hover:bg-white transition-colors cursor-pointer border-green-200"
         data-testid="challenge-card"
@@ -53,6 +53,6 @@ export default function ChallengeCard({ challenge }: { challenge: Challenge }) {
           </div>
         </CardContent>
       </Card>
-    </Link>
+    // </Link>
   );
 }
