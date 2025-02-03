@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,46 @@ export default function Home() {
   const [input, setInput] = useState("");
   const { createNewMessages } = useChatContext();
   const router = useRouter();
+
+  // Example questions to cycle through
+  const exampleQuestions = [
+    "What are some challenges in the aviation industry?",
+    "Climate Change Challenges in 2030",
+    "Impact of AI on the environment",
+    "Factors contributing to glacier loss",
+  ];
+
+  const [exampleText, setExampleText] = useState("");
+  const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    if (input) return; // Stop auto-typing when user starts typing
+
+    const currentText = exampleQuestions[currentExampleIndex];
+
+    const typeSpeed = isDeleting ? 50 : 100; // Faster delete, slower typing
+    const delay = isDeleting && charIndex === 0 ? 1500 : typeSpeed; // Pause before deleting
+
+    const timeout = setTimeout(() => {
+      if (!isDeleting && charIndex < currentText.length) {
+        setExampleText((prev) => prev + currentText[charIndex]);
+        setCharIndex((prev) => prev + 1);
+      } else if (isDeleting && charIndex > 0) {
+        setExampleText((prev) => prev.slice(0, -1));
+        setCharIndex((prev) => prev - 1);
+      } else if (!isDeleting && charIndex === currentText.length) {
+        setIsDeleting(true);
+      } else {
+        setIsDeleting(false);
+        setCurrentExampleIndex((prev) => (prev + 1) % exampleQuestions.length);
+        setCharIndex(0);
+      }
+    }, delay);
+
+    return () => clearTimeout(timeout);
+  }, [charIndex, isDeleting, currentExampleIndex, input]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +71,7 @@ export default function Home() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your question here..."
+            placeholder={exampleText || "Type your question here..."}
             className="flex-grow border-green-300 focus:border-green-500 focus:ring-green-500"
           />
           <Button
