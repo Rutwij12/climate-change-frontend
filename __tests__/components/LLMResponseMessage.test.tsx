@@ -1,3 +1,5 @@
+import React from "react"
+
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import LLMResponseMessage from '@/components/LLMResponseMessage';
@@ -5,10 +7,15 @@ import { Challenge } from '@/types';
 
 // Mock ChallengeCard component
 jest.mock('@/components/ChallengeCard', () => {
-  return ({ challenge }: { challenge: Challenge }) => (
+  const MockChallengeCard = ({ challenge }: { challenge: Challenge }) => (
     <div data-testid={`challenge-card-${challenge.id}`}>{challenge.name}</div>
   );
+
+  MockChallengeCard.displayName = "MockChallengeCard"; // Assign display name
+
+  return MockChallengeCard;
 });
+
 
 // Mock UI components
 jest.mock('@/components/ui/card', () => ({

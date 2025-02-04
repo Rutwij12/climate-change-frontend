@@ -1,3 +1,4 @@
+import React from "react"
 import '@testing-library/jest-dom' // to use .toBeInTheDocument()
 import { render, screen } from '@testing-library/react'
 import ChatMessage from '@/components/ChatMessage'
@@ -11,10 +12,15 @@ jest.mock('@/components/UserMessage', () => {
 })
 
 jest.mock('@/components/LLMResponseMessage', () => {
-  return function MockLLMResponse({ summary, challenges }: { summary: string, challenges: any[] }) {
-    return <div data-testid="llm-response">{summary}</div>
-  }
-})
+  const MockLLMResponse = function ({ summary }: { summary: string }) {
+    return <div data-testid="llm-response">{summary}</div>;
+  };
+
+  MockLLMResponse.displayName = "MockLLMResponse"; // Assign display name
+
+  return MockLLMResponse;
+});
+
 
 describe('ChatMessage', () => {
   test('renders UserMessage when message type is user', () => {

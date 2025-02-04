@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import React from "react"
 import { render, screen } from '@testing-library/react';
 import ChallengeCard from '@/components/ChallengeCard';
 import { Challenge } from '@/types';
@@ -11,10 +12,15 @@ jest.mock('lucide-react', () => ({
 
 // Mock Next.js Link component
 jest.mock('next/link', () => {
-  return ({ children, href }: { children: React.ReactNode, href: string }) => {
+  const MockNextLink = ({ children, href }: { children: React.ReactNode; href: string }) => {
     return <div data-testid="mocked-link" data-href={href}>{children}</div>;
   };
+
+  MockNextLink.displayName = "MockNextLink"; // Assign display name
+
+  return MockNextLink;
 });
+
 
 describe('ChallengeCard', () => {
   const mockChallenge: Challenge = {

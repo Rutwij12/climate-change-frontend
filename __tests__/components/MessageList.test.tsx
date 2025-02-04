@@ -10,10 +10,15 @@ window.HTMLElement.prototype.scrollIntoView = mockScrollIntoView;
 
 // Mock ChatMessage component
 jest.mock('@/components/ChatMessage', () => {
-  return ({ message }: { message: ChatMessage_T }) => (
-    <div data-testid={`chat-message-${message.id}`}>{message.content as string}</div>
-  );
+  const MockChatMessage = function ({ message }: { message: ChatMessage_T }) {
+    return <div data-testid={`chat-message-${message.id}`}>{message.content as string}</div>
+  };
+
+  MockChatMessage.displayName = "MockChatMessage"; // Assign display name
+
+  return MockChatMessage;
 });
+
 
 describe('MessageList Component', () => {
   const mockMessages: ChatMessage_T[] = [
