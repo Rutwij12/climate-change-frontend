@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ClimateChat from "@/components/ChatPanes/ClimateChatContent";
 import ResearchPaperList from "@/components/ChatPanes/ResearchPapersList";
@@ -8,21 +8,56 @@ import { Challenge } from "@/types";
 
 export default function ChatWithResearch() {
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
+  const [leftPaneWidth, setLeftPaneWidth] = useState(50); // Initial width percentage
+  const [isResizing, setIsResizing] = useState(false);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isResizing) {
+        const newWidth = (e.clientX / window.innerWidth) * 100;
+        setLeftPaneWidth(Math.max(10, Math.min(newWidth, 90))); // Limit resizing between 10% and 90%
+      }
+    };
+
+    const handleMouseUp = () => setIsResizing(false);
+
+    if (isResizing) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    } else {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing]);
 
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Left Pane (Chat) */}
       <motion.div
-        className="transition-all ease-in-out duration-500 bg-green-50"
-        animate={{ width: selectedChallenge ? "50%" : "100%" }} // Shrinks when challenge is selected
+        className="bg-green-50 transition-all"
+        animate={{ width: selectedChallenge ? `${leftPaneWidth}%` : "100%" }}
       >
         <ClimateChat onChallengeClick={setSelectedChallenge} />
       </motion.div>
 
+      {/* Resizable Divider - Only show when right pane is open */}
+      {selectedChallenge && (
+        <div
+          className="cursor-col-resize bg-gray-400 w-2 hover:bg-gray-500"
+          onMouseDown={() => setIsResizing(true)}
+        />
+      )}
+
       {/* Right Pane (Research Papers) */}
       {selectedChallenge && (
         <motion.div
-          className="w-1/2 overflow-y-auto bg-white p-4"
+          className="overflow-y-auto"
+          style={{ width: `${100 - leftPaneWidth}%` }}
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
