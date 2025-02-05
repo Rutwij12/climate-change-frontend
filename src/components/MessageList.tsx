@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 import ChatMessage from "./ChatMessage";
-import { ChatMessage_T as ChatMessageType } from "@/types";
+import { ChatMessage_T as ChatMessageType, Challenge } from "@/types";
 
 /**
  * MessageList Component
@@ -13,7 +13,13 @@ import { ChatMessage_T as ChatMessageType } from "@/types";
  * @param {ChatMessageType[]} props.messages - Array of chat messages
  * @returns {JSX.Element} The rendered MessageList component
  */
-export default function MessageList({ messages }: { messages: ChatMessageType[] }) {
+export default function MessageList({
+  messages,
+  onChallengeSelect,
+}: {
+  messages: ChatMessageType[];
+  onChallengeSelect: (challenge: Challenge) => void;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const userMessageRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +42,7 @@ export default function MessageList({ messages }: { messages: ChatMessageType[] 
             key={message.id}
             ref={message.type === 'user' ? userMessageRef : null} // Attach ref only to user messages
           >
-            <ChatMessage message={message} />
+            <ChatMessage message={message} onChallengeSelect={onChallengeSelect}/>
           </div>
         ))}
       </div>

@@ -17,12 +17,12 @@ import Markdown from "react-markdown";
 export default function LLMResponseMessage({
   summary,
   challenges,
+  onChallengeSelect, // Add this prop
 }: {
   summary: string;
   challenges: Challenge[];
+  onChallengeSelect: (challenge: Challenge) => void; // Callback function
 }) {
-  console.log("summary we have recieved");
-  console.log(summary);
   return (
     <div className="mb-4 text-left">
       {/* Main Card displaying the AI-generated response */}
@@ -35,7 +35,11 @@ export default function LLMResponseMessage({
           {/* List of challenge cards (Handles case where challenges might be empty) */}
           <div className="grid gap-4">
             {challenges?.map((challenge) => (
-              <ChallengeCard challenge={challenge} key={challenge.id} />
+              <ChallengeCard 
+                challenge={challenge} 
+                key={challenge.id} 
+                onClick={() => onChallengeSelect(challenge)}
+              />
             ))}
           </div>
         </CardContent>

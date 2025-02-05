@@ -1,49 +1,35 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
-import { useChatContext } from "@/lib/ChatContent";
-import Header from "@/components/Header";
-import MessageList from "@/components/MessageList";
-import MessageInput from "@/components/MessageInput";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import ClimateChat from "@/components/ChatPanes/ClimateChatContent";
+import ResearchPaperList from "@/components/ChatPanes/ResearchPapersList";
+import { Challenge } from "@/types";
 
-function ClimateChatContent() {
-  const { messages, createNewMessages } = useChatContext();
-  const [input, setInput] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim()) {
-      createNewMessages(input.trim());
-      setInput("");
-    }
-  };
+export default function ChatWithResearch() {
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
 
   return (
-    <div className="flex flex-col h-screen">
-      {/* Header */}
-      <Header />
+    <div className="flex h-screen overflow-hidden">
+      {/* Left Pane (Chat) */}
+      <motion.div
+        className="transition-all ease-in-out duration-500 bg-green-50"
+        animate={{ width: selectedChallenge ? "50%" : "100%" }} // Shrinks when challenge is selected
+      >
+        <ClimateChat onChallengeClick={setSelectedChallenge} />
+      </motion.div>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto bg-green-50">
-        <MessageList messages={messages} />
-      </div>
-
-      {/* Fixed Input */}
-      <div className="bg-green-50 pb-6">
-        <MessageInput
-          input={input}
-          setInput={setInput}
-          handleSubmit={handleSubmit}
-        />
-      </div>
+      {/* Right Pane (Research Papers) */}
+      {selectedChallenge && (
+        <motion.div
+          className="w-1/2 overflow-y-auto bg-white p-4"
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <ResearchPaperList challenge={selectedChallenge} onClose={() => setSelectedChallenge(null)} />
+        </motion.div>
+      )}
     </div>
-  );
-}
-
-export default function ClimateChat() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ClimateChatContent />
-    </Suspense>
   );
 }
