@@ -19,7 +19,7 @@ export function AuthorCarousel() {
   }
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto py-8 flex items-center">
+    <div className="relative w-full max-w-6xl mx-auto py-8 flex items-center">
       {/* Previous Button */}
       <Button
         variant="ghost"
