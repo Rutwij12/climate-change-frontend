@@ -33,7 +33,7 @@ export default function ChallengeCard({ challenge }: { challenge: Challenge }) {
           {/* Renders an icon only if it exists to prevent errors */}
           {challenge.icon && (
             <challenge.icon
-              className="h-5 w-5 text-green-600"
+              className="h-4 w-4 text-green-600"
               data-testid="challenge-icon"
             />
           )}
