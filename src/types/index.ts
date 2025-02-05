@@ -24,3 +24,16 @@ export interface MessageInputProps {
   setInput: (value: string) => void; // `setInput` is a function to update the input value
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void; // `handleSubmit` handles form submission
 }
+
+export interface Author {
+  name: string
+  isHelpful: boolean
+}
+
+export interface Paper {
+  id: number
+  title: string
+  abstract: string
+  publishedDate: string
+  authors: Author[]
+}
