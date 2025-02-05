@@ -19,8 +19,18 @@ export function AuthorCarousel() {
   }
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto py-8">
-      <div className="overflow-hidden relative">
+    <div className="relative w-full max-w-4xl mx-auto py-8 flex items-center">
+      {/* Previous Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-12 w-12 rounded-full bg-[#447A48] text-white hover:bg-[#447A48]/90 mx-4"
+        onClick={goToPrevious}
+      >
+        <ChevronLeft className="h-8 w-8" />
+      </Button>
+
+      <div className="overflow-hidden relative flex-1">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
@@ -34,29 +44,18 @@ export function AuthorCarousel() {
         </AnimatePresence>
       </div>
 
-      <div className="absolute inset-y-0 left-0 flex items-center">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-12 w-12 rounded-full bg-[#447A48] text-white hover:bg-[#447A48]/90"
-          onClick={goToPrevious}
-        >
-          <ChevronLeft className="h-8 w-8" />
-        </Button>
-      </div>
+      {/* Next Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-12 w-12 rounded-full bg-[#447A48] text-white hover:bg-[#447A48]/90 mx-4"
+        onClick={goToNext}
+      >
+        <ChevronRight className="h-8 w-8" />
+      </Button>
 
-      <div className="absolute inset-y-0 right-0 flex items-center">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-12 w-12 rounded-full bg-[#447A48] text-white hover:bg-[#447A48]/90"
-          onClick={goToNext}
-        >
-          <ChevronRight className="h-8 w-8" />
-        </Button>
-      </div>
-
-      <div className="mt-4 flex justify-center gap-2">
+      {/* Navigation Dots */}
+      <div className="absolute bottom-[-40px] left-1/2 transform -translate-x-1/2 flex gap-2">
         {authors.map((_, index) => (
           <Button
             key={index}
@@ -70,4 +69,3 @@ export function AuthorCarousel() {
     </div>
   )
 }
-

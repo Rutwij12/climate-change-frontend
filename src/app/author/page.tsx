@@ -1,9 +1,12 @@
 import { AuthorCarousel } from "@/components/author-carousel"
+import Header from "@/components/Header";
 
 export default function Page() {
   return (
-    <main className="min-h-screen bg-[#E8F5E9]/50 p-4">
+      <div className="flex flex-col h-screen">
+      
+      <Header />
       <AuthorCarousel />
-    </main>
+    </div>
   )
 }
