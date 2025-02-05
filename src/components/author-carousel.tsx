@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from "framer-motion"
 
 export function AuthorCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [direction, setDirection] = useState(-1)
 
   const goToPrevious = () => {
     setCurrentIndex((current) => (current === 0 ? authors.length - 1 : current - 1))
@@ -34,9 +35,9 @@ export function AuthorCarousel() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, x: 100 }}
+            initial={{ opacity: 0, x: direction * 100 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
+            exit={{ opacity: 0, x: direction * -100 }}
             transition={{ duration: 0.3 }}
           >
             <AuthorCard author={authors[currentIndex]} />
