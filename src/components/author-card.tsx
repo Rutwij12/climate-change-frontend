@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { Author } from "../types/author"
+import { Button } from "@/components/ui/button"
 
 interface AuthorCardProps {
   author: Author
@@ -69,8 +70,15 @@ export function AuthorCard({ author }: AuthorCardProps) {
             </div>
           </div>
         </div>
+
       </CardContent>
+
+      <Button className="w-full bg-[#447A48] hover:bg-[#447A48]/90 text-white">Add To Book</Button>
+
+
     </Card>
+
+
   )
 }
 
