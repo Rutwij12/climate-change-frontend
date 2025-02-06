@@ -37,11 +37,13 @@ export default function ResearchPapersList({ challenge, onClose }: ResearchPaper
   return (
     <div className="relative container mx-auto bg-green-50 min-h-screen">
       <button
-        className="absolute top-4 right-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        className="absolute top-3 right-4 px-2 py-1 border-2 border-red-600 bg-red-500 text-white rounded hover:bg-red-700"
         onClick={onClose}
       >
         Close
       </button>
+
+      {/* Heading of Research Papers List*/}
       <header className="bg-green-700 text-white p-4 flex items-center justify-center h-16">
         <h1 className="text-2xl font-bold">Research Papers</h1>
       </header>
