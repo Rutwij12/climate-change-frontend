@@ -32,9 +32,8 @@ export interface Author {
 }
 
 export interface Paper {
-  id: number;
-  title: string;
-  abstract: string;
-  publishedDate: string;
-  authors: Author[];
+  paper_id: number;
+  paper_title: string;
+  publication_date: string;
+  content: string; 
 }

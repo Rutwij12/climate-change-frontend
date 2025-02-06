@@ -1,40 +1,41 @@
-"use client"
+"use client";
 
-import React from "react"
-import PaperCard from "@/components/PaperCard"
-import { Paper, Challenge } from "@/types"
-
-const papers: Paper[] = [
-  {
-    id: 1,
-    title: "Advances in Quantum Computing",
-    abstract: "This paper explores recent developments in quantum computing...",
-    publishedDate: "2023-05-15",
-    authors: [
-      { name: "Dr. Alice Johnson", isHelpful: true },
-      { name: "Prof. Bob Smith", isHelpful: true },
-    ],
-  },
-  // Add more papers...
-]
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import PaperCard from "@/components/PaperCard";
+import { Paper, Challenge } from "@/types";
 
 interface ResearchPapersListProps {
-  challenge: Challenge; // Accept the selected challenge as a prop
-  onClose: () => void; // Optional close handler
+  challenge: Challenge;
+  onClose: () => void;
 }
 
 export default function ResearchPapersList({ challenge, onClose }: ResearchPapersListProps) {
+  const [papers, setPapers] = useState<Paper[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  //  // Filter the papers based on the selected challenge
-  //  const relatedPapers = papers.filter((paper) =>
-  //   paper.challenges?.some((c) => c.id === challenge.id)
-  // );
+  useEffect(() => {
+    const fetchPapers = async () => {
+      try {
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/papers/search`, {
+          query: challenge.name,
+          top_k: 5,
+        });
+      
+        setPapers(response.data);
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  console.log(challenge);
-  
+    fetchPapers();
+  }, [challenge]);
+
   return (
     <div className="relative container mx-auto bg-green-50 min-h-screen">
-      {/* Close Button */}
       <button
         className="absolute top-4 right-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
         onClick={onClose}
@@ -44,12 +45,18 @@ export default function ResearchPapersList({ challenge, onClose }: ResearchPaper
       <header className="bg-green-700 text-white p-4 flex items-center justify-center h-16">
         <h1 className="text-2xl font-bold">Research Papers</h1>
       </header>
-      {papers.map((paper) => (
-        <PaperCard 
-          key={paper.id} 
-          paper={paper} 
-        />
-      ))}
+      {/* List of Research Papers*/}
+      <div className="p-4">
+        {loading ? (
+          <p className="text-center mt-4">Loading papers...</p>
+        ) : error ? (
+          <p className="text-center mt-4 text-red-600">{error}</p>
+        ) : papers.length === 0 ? (
+          <p className="text-center mt-4">No research papers found.</p>
+        ) : (
+          papers.map((paper) => <PaperCard key={paper.paper_id} paper={paper} />)
+        )}
+      </div>
     </div>
-  )
+  );
 }
