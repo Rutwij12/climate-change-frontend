@@ -68,9 +68,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
               const topicsRegex = /["']topic["']:\s*["']([^"']*)["']/g;
               const sourcesRegex = /["']source["']:\s*["']([^"']*)["']/g;
+              const urlsRegex = /["']url["']:\s*["']([^"']*)["']/g;
 
               const topics: string[] = [];
               const sources: string[] = [];
+              const urls: string[] = [];
 
               let topicMatch;
               while ((topicMatch = topicsRegex.exec(jsonText)) !== null) {
@@ -82,11 +84,17 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
                 sources.push(sourceMatch[1]);
               }
 
+              let urlMatch;
+              while ((urlMatch = urlsRegex.exec(jsonText)) !== null) {
+                urls.push(urlMatch[1]);
+              }
+
               const challenges = topics.map((topic, index) => ({
                 id: `topic-${index}`,
                 name: topic,
                 explanation: "",
                 citation: sources[index] || "",
+                url: urls[index] || "",
                 icon: CloudRain,
               }));
 
