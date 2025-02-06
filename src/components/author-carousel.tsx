@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AuthorCard } from "@/components/author-card"
@@ -9,7 +9,7 @@ import { AnimatePresence, motion } from "framer-motion"
 
 export function AuthorCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [direction, setDirection] = useState(-1)
+  const [direction] = useState(-1)
 
   const goToPrevious = () => {
     setCurrentIndex((current) => (current === 0 ? authors.length - 1 : current - 1))

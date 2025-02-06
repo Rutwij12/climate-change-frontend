@@ -1,5 +1,6 @@
 import AuthorBook from "@/components/author-book"; // ✅ Correct import
 import Header from "@/components/Header";
+import React from "react"
 
 const authors = [
   { id: 1, name: "Emily Johnson", isUseful: null },

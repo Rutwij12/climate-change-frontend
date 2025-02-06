@@ -1,3 +1,4 @@
+import React from "react"
 import { AuthorCarousel } from "@/components/author-carousel"
 import Header from "@/components/Header";
 
