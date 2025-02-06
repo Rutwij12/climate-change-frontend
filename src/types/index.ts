@@ -28,12 +28,34 @@ export interface MessageInputProps {
 
 export interface Author {
   name: string;
-  isHelpful: boolean;
+  citations: number;
+  dob: string;
+  organisation_history: string[];
+  orcid: string;
+  hindex: number;
+  grants: string[];
+  grant_org_name: string;
+  website: string;
+  openAlexid: string;
+  works_count: number;
+  score: number | null; // Computed later
+}
+
+export interface Grant {
+  organisation: string,
+  title: string,
+  category: string,
+  value: number,
+  funder: string
 }
 
 export interface Paper {
-  paper_id: number;
-  paper_title: string;
+  paper_id: string;
+  openalex_id: string;
+  title: string;
+  relevancy: number;
+  authors: Author[];
+  doi: string;
+  abstract: string;
   publication_date: string;
-  content: string; 
 }
