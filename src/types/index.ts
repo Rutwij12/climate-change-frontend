@@ -1,10 +1,11 @@
-import React from 'react';
+import React from "react";
 
 export interface Challenge {
   id: string;
   name: string;
   explanation: string;
   citation: string;
+  url: string;
   icon: React.ElementType;
 }
 
@@ -15,7 +16,7 @@ export interface LLMResponse {
 
 export interface ChatMessage_T {
   id: number;
-  type: 'user' | 'llm';
+  type: "user" | "llm";
   content: string | LLMResponse;
 }
 
@@ -26,14 +27,14 @@ export interface MessageInputProps {
 }
 
 export interface Author {
-  name: string
-  isHelpful: boolean
+  name: string;
+  isHelpful: boolean;
 }
 
 export interface Paper {
-  id: number
-  title: string
-  abstract: string
-  publishedDate: string
-  authors: Author[]
+  id: number;
+  title: string;
+  abstract: string;
+  publishedDate: string;
+  authors: Author[];
 }
