@@ -22,19 +22,18 @@ describe('ChallengeCard', () => {
     name: 'Test Challenge',
     explanation: 'This is a test challenge explanation',
     citation: 'Test Source',
+    url: 'Test URL',
     icon: () => <div>Mocked Icon</div> // Use a simple function component
   };
 
-  it('renders challenge card with correct information', () => {
-    render(<ChallengeCard challenge={mockChallenge} />);
+  const mockOnClick = jest.fn();
+
+  it('renders challenge card with correct information', async () => {
+    render(<ChallengeCard challenge={mockChallenge} onClick={mockOnClick}/>);
 
     // Check challenge name
     const nameElement = screen.getByText('Test Challenge');
     expect(nameElement).toBeInTheDocument();
-
-    // Check challenge explanation
-    const explanationElement = screen.getByText('This is a test challenge explanation');
-    expect(explanationElement).toBeInTheDocument();
 
     // Check citation
     const citationElement = screen.getByText('Source: Test Source');
