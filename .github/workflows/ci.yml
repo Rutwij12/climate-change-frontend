@@ -9,36 +9,8 @@ on:
       - main  # Run the workflow for pull requests targeting main
 
 jobs:
-  source:
-    runs-on: ubuntu-latest
-
-    steps:
-      # Step 1: Check out the code
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      # Step 2: Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20.18.0  # Use Node.js version 20.18.0
-
-      # Step 3: Cache npm dependencies
-      - name: Cache npm dependencies
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
-
-      # Step 4: Install Dependencies (only if cache miss)
-      - name: Install Dependencies
-        run: npm install
-
   build:
     runs-on: ubuntu-latest
-    needs: test  # Ensures 'test' job completes first
 
     steps:
       # Step 1: Check out the code
@@ -50,15 +22,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20.18.0  # Use Node.js version 20.18.0
+          cache: 'npm'
 
-      # Step 3: Use cached npm dependencies
-      - name: Use cached npm dependencies
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
+      # Step 3: Install Dependencies
+      - name: Install Dependencies
+        run: npm install
 
       # Step 4: Build Project
       - name: Build Project
@@ -72,7 +40,6 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    needs: source  # Ensures 'source' job completes first
 
     steps:
       # Step 1: Check out the code
@@ -84,15 +51,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20.18.0  # Use Node.js version 20.18.0
+          cache: 'npm'
 
-      # Step 3: Use cached npm dependencies
-      - name: Use cached npm dependencies
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
+      # Step 3: Install Dependencies
+      - name: Install Dependencies
+        run: npm install
 
       # Step 4: Lint Code
       - name: Lint Code
