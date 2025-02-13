@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { ChevronDown, ChevronUp, X, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -23,6 +23,13 @@ export default function PaperCard({ paper }: { paper: Paper | undefined }) {
   //   console.log(`Paper ${action}d:`, paper.title)
   //   // Add your logic here for paper approval/rejection
   // }
+
+  // Reset showAuthors when paper is collapsed
+  useEffect(() => {
+    if (!isExpanded) {
+      setShowAuthors(false)
+    }
+  }, [isExpanded])
 
   const handleAuthorAction = (authorName: string, action: "approve" | "reject") => {
     console.log(`Author ${action}d:`, authorName)
