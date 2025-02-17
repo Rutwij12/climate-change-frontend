@@ -1,7 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import React from 'react';
+import React from "react";
 import { ChatProvider } from "@/lib/ChatContent";
 import "./globals.css";
+import SessionProvider from "@/components/SessionProvider"; // ✅ Use the new client SessionProvider
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +24,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ChatProvider>{children}</ChatProvider>
+        <SessionProvider>
+          <ChatProvider>{children}</ChatProvider>
+        </SessionProvider>
       </body>
     </html>
   );
