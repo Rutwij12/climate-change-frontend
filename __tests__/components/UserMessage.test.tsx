@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import UserMessage from '@/components/UserMessage';
+import UserMessage from '@/components/ClimateChat/UserMessage';
 
 // Mock UI components
 jest.mock('@/components/ui/card', () => ({

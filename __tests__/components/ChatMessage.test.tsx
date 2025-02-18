@@ -1,16 +1,16 @@
 import '@testing-library/jest-dom' // to use .toBeInTheDocument()
 import { render, screen } from '@testing-library/react'
-import ChatMessage from '@/components/ChatMessage'
+import ChatMessage from '@/components/ClimateChat/ChatMessage'
 import { ChatMessage_T, LLMResponse } from '@/types'
 
 // Mock the child components
-jest.mock('@/components/UserMessage', () => {
+jest.mock('@/components/ClimateChat/UserMessage', () => {
   return function MockUserMessage({ content }: { content: string }) {
     return <div data-testid="user-message">{content}</div>
   }
 })
 
-jest.mock('@/components/LLMResponseMessage', () => {
+jest.mock('@/components/ClimateChat/LLMResponseMessage', () => {
   return function MockLLMResponse({ summary, challenges }: { summary: string, challenges: any[] }) {
     return <div data-testid="llm-response">{summary}</div>
   }

@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react';
-import ChallengeCard from '@/components/ChallengeCard';
+import ChallengeCard from '@/components/ClimateChat/ChallengeCard';
 import { Challenge } from '@/types';
 
 // Mock the entire Lucide React library

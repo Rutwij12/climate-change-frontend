@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import PaperCard from "@/components/PaperCard";
+import PaperCard from "@/components/ResearchPapers/PaperCard";
 import { Paper } from "@/types";
 import "@testing-library/jest-dom";
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import MessageInput from '@/components/MessageInput';
+import MessageInput from '@/components/ClimateChat/MessageInput';
 
 // Mock Lucide React icons
 jest.mock('lucide-react', () => ({

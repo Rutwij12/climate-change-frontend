@@ -1,6 +1,6 @@
 import React from "react"
 import { AuthorCarousel } from "@/components/author-carousel"
-import Header from "@/components/Header";
+import Header from "@/components/ClimateChat/Header";
 
 export default function Page() {
   return (

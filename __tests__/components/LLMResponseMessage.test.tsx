@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import LLMResponseMessage from '@/components/LLMResponseMessage';
+import LLMResponseMessage from '@/components/ClimateChat/LLMResponseMessage'
 import { Challenge } from '@/types';
 
 // Mock ChallengeCard component
-jest.mock('@/components/ChallengeCard', () => {
+jest.mock('@/components/ClimateChat/ChallengeCard', () => {
   return ({ challenge, onClick }: { challenge: Challenge; onClick: () => void }) => (
     <div data-testid={`challenge-card-${challenge.id}`} onClick={onClick}>
       {challenge.name}

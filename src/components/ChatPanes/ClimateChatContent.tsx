@@ -2,9 +2,9 @@
 
 import React, { useState, Suspense } from "react";
 import { useChatContext } from "@/lib/ChatContent";
-import Header from "@/components/Header";
-import MessageList from "@/components/MessageList";
-import MessageInput from "@/components/MessageInput";
+import Header from "@/components/ClimateChat/Header";
+import MessageList from "@/components/ClimateChat/MessageList";
+import MessageInput from "@/components/ClimateChat/MessageInput";
 import { Challenge } from "@/types";
 
 // Removed the second `export default` to ensure there is only one default export

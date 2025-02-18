@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useState } from "react";
-import Header from "@/components/Header";
+import Header from "@/components/ClimateChat/Header";
 import AuthOption from "@/components/AuthOption";
 import SignInForm from "@/components/SignInForm";
 import SignUpForm from "@/components/SignUpForm";

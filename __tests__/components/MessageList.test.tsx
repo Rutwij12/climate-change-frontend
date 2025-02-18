@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import MessageList from '@/components/MessageList';
+import MessageList from '@/components/ClimateChat/MessageList';
 import { ChatMessage_T } from '@/types';
 
 // Mock scrollIntoView
@@ -9,7 +9,7 @@ const mockScrollIntoView = jest.fn();
 window.HTMLElement.prototype.scrollIntoView = mockScrollIntoView;
 
 // Mock ChatMessage component
-jest.mock('@/components/ChatMessage', () => {
+jest.mock('@/components/ClimateChat/ChatMessage', () => {
   return ({ message }: { message: ChatMessage_T }) => (
     <div data-testid={`chat-message-${message.id}`}>{message.content as string}</div>
   );

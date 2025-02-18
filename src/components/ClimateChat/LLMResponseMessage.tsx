@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import ChallengeCard from "./ChallengeCard";
+import ChallengeCard from "@/components/ClimateChat/ChallengeCard"
 import { Challenge } from "@/types";
 import Markdown from "react-markdown";
 

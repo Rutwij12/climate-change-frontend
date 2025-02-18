@@ -1,5 +1,5 @@
 import AuthorBook from "@/components/author-book"; // ✅ Correct import
-import Header from "@/components/Header";
+import Header from "@/components/ClimateChat/Header";
 import React from "react"
 
 const authors = [
