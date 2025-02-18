@@ -39,13 +39,13 @@ export default function PaperCard({ paper }: { paper: Paper | undefined }) {
   return (
     <Card className="mb-4 border-green-200 hover:border-green-400 transition-colors overflow-hidden">
       <CardContent className="p-4 relative">
-        <div
-          className="flex justify-between items-center cursor-pointer pr-20"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <h2 className="text-xl font-semibold text-green-700">{paper.title}</h2>
-          {isExpanded ? <ChevronUp className="text-green-600" /> : <ChevronDown className="text-green-600" />}
+        <div className="flex justify-between items-center w-full cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+          <h2 className="text-xl font-semibold text-green-700 flex-1">{paper.title}</h2>
+          <div className="flex justify-end w-10">
+            {isExpanded ? <ChevronUp className="text-green-600" size={20} /> : <ChevronDown className="text-green-600" size={20} />}
+          </div>
         </div>
+
         <p className="text-sm text-green-600 mt-2">Published on: {paper.publication_date}</p>
         <AnimatePresence>
           {isExpanded && (
