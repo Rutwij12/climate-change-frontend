@@ -2,20 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Sidebar from "@/components/ChatPanes/Sidebar";
 import ClimateChat from "@/components/ChatPanes/ClimateChatContent";
 import ResearchPaperList from "@/components/ChatPanes/ResearchPapersList";
 import { Challenge } from "@/types";
 
 export default function ChatWithResearch() {
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
-  const [leftPaneWidth, setLeftPaneWidth] = useState(50); // Initial width percentage
+  const [leftPaneWidth, setLeftPaneWidth] = useState(50);
   const [isResizing, setIsResizing] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Track sidebar state
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isResizing) {
         const newWidth = (e.clientX / window.innerWidth) * 100;
-        setLeftPaneWidth(Math.max(10, Math.min(newWidth, 90))); // Limit resizing between 10% and 90%
+        setLeftPaneWidth(Math.max(10, Math.min(newWidth, 90)));
       }
     };
 
@@ -37,34 +39,47 @@ export default function ChatWithResearch() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Left Pane (Chat) */}
-      <motion.div
-        className="bg-green-50 transition-all"
-        animate={{ width: selectedChallenge ? `${leftPaneWidth}%` : "100%" }}
+      {/* Sidebar */}
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+
+      {/* Main Content */}
+      <div
+        className={`flex transition-all duration-300 w-full ${
+          sidebarOpen ? "ml-[200px]" : "ml-0"
+        }`}
       >
-        <ClimateChat onChallengeClick={setSelectedChallenge} />
-      </motion.div>
-
-      {/* Resizable Divider - Only show when right pane is open */}
-      {selectedChallenge && (
-        <div
-          className="cursor-col-resize bg-gray-400 w-2 hover:bg-gray-500"
-          onMouseDown={() => setIsResizing(true)}
-        />
-      )}
-
-      {/* Right Pane (Research Papers) */}
-      {selectedChallenge && (
+        {/* Left Pane (Chat) */}
         <motion.div
-          className="overflow-y-auto"
-          style={{ width: `${100 - leftPaneWidth}%` }}
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
+          className="bg-green-50 transition-all"
+          animate={{ width: selectedChallenge ? `${leftPaneWidth}%` : "100%" }}
         >
-          <ResearchPaperList challenge={selectedChallenge} onClose={() => setSelectedChallenge(null)} />
+          <ClimateChat onChallengeClick={setSelectedChallenge} />
         </motion.div>
-      )}
+
+        {/* Resizable Divider */}
+        {selectedChallenge && (
+          <div
+            className="cursor-col-resize bg-gray-400 w-2 hover:bg-gray-500"
+            onMouseDown={() => setIsResizing(true)}
+          />
+        )}
+
+        {/* Right Pane (Research Papers) */}
+        {selectedChallenge && (
+          <motion.div
+            className="overflow-y-auto"
+            style={{ width: `${100 - leftPaneWidth}%` }}
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <ResearchPaperList
+              challenge={selectedChallenge}
+              onClose={() => setSelectedChallenge(null)}
+            />
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }
