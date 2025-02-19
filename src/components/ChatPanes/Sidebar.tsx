@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Menu, X, MessageSquarePlus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   Tooltip,
   TooltipContent,
@@ -15,6 +16,12 @@ export default function Sidebar({
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
 }) {
+  const router = useRouter();
+
+  const handleNewChat = () => {
+    router.push('/');  // Navigate to the landing page
+  };
+
   return (
     <div className="relative h-screen">
       {/* Menu Button with Tooltip (only shown when sidebar is closed) */}
@@ -66,7 +73,7 @@ export default function Sidebar({
                 <TooltipTrigger asChild>
                   <button
                     className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-md focus:outline-none transition-colors duration-150 shadow-md"
-                    onClick={() => console.log("New chat clicked")}
+                    onClick={handleNewChat}
                   >
                     <MessageSquarePlus size={24} />
                   </button>
