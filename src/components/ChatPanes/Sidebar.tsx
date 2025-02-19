@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Menu, X, MessageSquarePlus } from "lucide-react";
+import { Menu, X, MessageSquarePlus, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   Tooltip,
@@ -19,7 +19,7 @@ export default function Sidebar({
   const router = useRouter();
 
   const handleNewChat = () => {
-    router.push('/');  // Navigate to the landing page
+    router.push('/');
   };
 
   return (
@@ -85,18 +85,13 @@ export default function Sidebar({
             </TooltipProvider>
           </div>
 
-          <h2 className="text-lg font-semibold mb-6 text-emerald-100">Menu</h2>
-          <ul className="space-y-4">
-            <li className="cursor-pointer hover:text-emerald-300 transition-colors duration-150">
-              Option 1
-            </li>
-            <li className="cursor-pointer hover:text-emerald-300 transition-colors duration-150">
-              Option 2
-            </li>
-            <li className="cursor-pointer hover:text-emerald-300 transition-colors duration-150">
-              Option 3
-            </li>
-          </ul>
+          {/* Author Book Button */}
+          <button
+            className="w-full bg-emerald-600 text-white py-2 px-4 rounded-md shadow-md text-center font-medium flex items-center justify-center gap-2"
+          >
+            <BookOpen size={20} />
+            Author Book
+          </button>
         </div>
       </div>
     </div>
