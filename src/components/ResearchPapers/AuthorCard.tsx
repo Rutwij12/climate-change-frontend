@@ -1,20 +1,11 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { UserPlus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import axios from "axios"
-
-interface Author {
-  name: string
-  citations: number
-  hindex: number
-  orcid: string
-  organisation_history?: string[]
-  grants?: string[]
-  website: string
-}
+import { Author } from "@/types"
 
 interface AuthorCardProps {
   author: Author
@@ -25,18 +16,19 @@ interface AuthorCardProps {
 }
 
 export default function AuthorCard({ author, isAdded, isRemoved, addAuthor, removeAuthor }: AuthorCardProps) {
+  const [isAdding, setIsAdding] = useState(false)
+
   if (isRemoved) return null
 
   const handleAddAuthor = async () => {
+    setIsAdding(true)
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors`, {
         name: author.name,
         institution: author.organisation_history?.[0] ?? "Unknown",
         note: author.grants?.join(", ") ?? null,
-        openalex_id: author.orcid || "", // Ensure a string is sent
+        openalex_id: author.openAlexid || "", // Ensure a string is sent
       })
-
-      console.log("Author added:", response.data)
       addAuthor(author.name) // Update UI
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -44,6 +36,8 @@ export default function AuthorCard({ author, isAdded, isRemoved, addAuthor, remo
       } else {
         console.error("Unexpected error:", error)
       }
+    } finally {
+      setIsAdding(false)
     }
   }
 
@@ -80,10 +74,10 @@ export default function AuthorCard({ author, isAdded, isRemoved, addAuthor, remo
           className="bg-green-100 border-green-400 text-green-600"
           variant="outline"
           onClick={handleAddAuthor}
-          disabled={isAdded}
+          disabled={isAdded || isAdding}
         >
           <UserPlus className="h-4 w-4 mr-2" />
-          {isAdded ? "Author Added" : "Add"}
+          {isAdded ? "Author Added" : isAdding ? "Adding Author..." : "Add"}
         </Button>
 
         <Button
