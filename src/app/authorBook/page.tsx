@@ -1,33 +1,58 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import BookComponent, { Author, Status } from "@/components/AuthorBook/Book"
 
 export default function AuthorBook() {
   // Sample initial data
-  const [authors, setAuthors] = useState<Author[]>([
-    {
-      id: 1,
-      name: "Dr. Jane Smith",
-      institution: "University of Science",
-      notes: "Excellent research in AI",
-      status: "Uncontacted",
-    },
-    {
-      id: 2,
-      name: "Prof. John Doe",
-      institution: "Tech Institute",
-      notes: "Specializes in Machine Learning",
-      status: "Interested",
-    },
-  ]);
+  const [authors, setAuthors] = useState<Author[]>([]);
 
-  const updateNotes = (id: number, notes: string) => {
-    setAuthors(authors.map((author) => (author.id === id ? { ...author, notes } : author)));
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAuthors = async () => {
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors`);
+        setAuthors(
+          response.data.map((author: any) => ({
+            id: author.id,
+            name: author.name,
+            institution: author.institution,
+            notes: author.note, // Backend uses "note", frontend uses "notes"
+            status: author.state, // Backend uses "state", frontend uses "status"
+          }))
+        );
+      } catch (err) {
+        setError("Failed to load authors");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAuthors();
+  }, []);
+
+  const updateNotes = async (id: number, notes: string) => {
+    try {
+      await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}/note`, { note: notes });
+      setAuthors(authors.map((author) => (author.id === id ? { ...author, notes } : author)));
+    } catch (err) {
+      setError("Failed to update notes");
+    }
   };
 
-  const updateStatus = (id: number, status: Status) => {
-    setAuthors(authors.map((author) => (author.id === id ? { ...author, status } : author)));
+  const updateStatus = async (id: number, status: Status) => {
+    try {
+      await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}/state`, { state: status });
+      setAuthors(authors.map((author) => (author.id === id ? { ...author, status } : author)));
+    } catch (err) {
+      setError("Failed to update status");
+    }
   };
+
+  if (loading) return <div className="text-center text-emerald-700">Loading authors...</div>;
+  if (error) return <div className="text-center text-red-500">{error}</div>;
 
   return (
     <div className="container mx-auto py-8 px-4">
