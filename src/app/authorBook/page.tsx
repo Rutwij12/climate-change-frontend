@@ -3,6 +3,15 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import BookComponent, { Author, Status } from "@/components/AuthorBook/Book"
 
+// Define an interface for API response
+interface AuthorResponse {
+  id: number;
+  name: string;
+  institution: string;
+  note?: string;
+  state: Status;
+}
+
 export default function AuthorBook() {
   // Sample initial data
   const [authors, setAuthors] = useState<Author[]>([]);
@@ -15,7 +24,7 @@ export default function AuthorBook() {
       try {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors`);
         setAuthors(
-          response.data.map((author: any) => ({
+          response.data.map((author: AuthorResponse) => ({
             id: author.id,
             name: author.name,
             institution: author.institution,
@@ -23,8 +32,12 @@ export default function AuthorBook() {
             status: author.state, // Backend uses "state", frontend uses "status"
           }))
         );
-      } catch (err) {
-        setError("Failed to load authors");
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          setError(error.response?.data?.detail || "Failed to load authors");
+        } else {
+          setError("An unexpected error occurred");
+        }
       } finally {
         setLoading(false);
       }
@@ -37,7 +50,10 @@ export default function AuthorBook() {
     try {
       await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}/note`, { note: notes });
       setAuthors(authors.map((author) => (author.id === id ? { ...author, notes } : author)));
-    } catch (err) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.log("");
+      }
       setError("Failed to update notes");
     }
   };
@@ -46,7 +62,10 @@ export default function AuthorBook() {
     try {
       await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}/state`, { state: status });
       setAuthors(authors.map((author) => (author.id === id ? { ...author, status } : author)));
-    } catch (err) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.log("");
+      }
       setError("Failed to update status");
     }
   };
