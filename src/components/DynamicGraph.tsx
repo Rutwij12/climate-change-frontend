@@ -1,34 +1,21 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useCallback, useMemo } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import ReactFlow, {
-  type Node,
-  type Edge,
+  Node,
+  Edge,
   useNodesState,
   useEdgesState,
   addEdge,
-  type Connection,
+  Connection,
   useReactFlow,
   ReactFlowProvider,
   Handle,
   Position,
-  type NodeProps,
   MarkerType,
-} from "reactflow"
-import "reactflow/dist/style.css"
-import { fetchRelatedNodes } from "../actions/fetchRelatedNodes"
-
-const initialNodes: Node[] = [
-  { id: "1", data: { label: "Node 1" }, position: { x: 250, y: 5 }, type: "circle" },
-  { id: "2", data: { label: "Node 2" }, position: { x: 100, y: 100 }, type: "circle" },
-  { id: "3", data: { label: "Node 3" }, position: { x: 400, y: 100 }, type: "circle" },
-]
-
-const initialEdges: Edge[] = [
-  { id: "e1-2", source: "1", target: "2", animated: true },
-  { id: "e1-3", source: "1", target: "3", animated: true },
-]
+} from "reactflow";
+import axios from "axios";
+import "reactflow/dist/style.css";
 
 const nodeColors = [
   "#FF6B6B",
@@ -41,9 +28,10 @@ const nodeColors = [
   "#7986CB",
   "#4DB6AC",
   "#9575CD",
-]
+];
 
-function CircleNode({ data, isConnectable }: NodeProps) {
+// Custom node component.
+function CircleNode({ data, isConnectable }: any) {
   return (
     <div
       className="relative flex items-center justify-center w-12 h-12 rounded-full bg-white border-2 border-gray-300 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-110"
@@ -53,86 +41,199 @@ function CircleNode({ data, isConnectable }: NodeProps) {
       <Handle type="target" position={Position.Top} isConnectable={isConnectable} className="w-3 h-3" />
       <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} className="w-3 h-3" />
     </div>
-  )
+  );
 }
 
-const nodeTypes = {
-  circle: CircleNode,
+const nodeTypes = { circle: CircleNode };
+
+interface GraphData {
+  nodes: Node[];
+  edges: Edge[];
 }
 
-function Flow() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-  const { setCenter } = useReactFlow()
+interface DynamicGraphProps {
+  initialGraphData: GraphData;
+}
+
+function Flow({ initialGraphData }: DynamicGraphProps) {
+  // Normalize initial nodes (ensure type, color, and expanded flag).
+  const normalizedNodes = initialGraphData.nodes.map((node) => ({
+    ...node,
+    type: node.type || "circle",
+    data: {
+      ...node.data,
+      label: node.data?.label || `Node ${node.id}`,
+      color: node.data?.color || nodeColors[Math.floor(Math.random() * nodeColors.length)],
+      expanded: node.data?.expanded || false,
+    },
+    position: node.position || { x: 0, y: 0 },
+  }));
+  const normalizedEdges = initialGraphData.edges.map((edge) => ({
+    ...edge,
+    animated: edge.animated ?? true,
+  }));
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(normalizedNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(normalizedEdges);
+  const { setCenter } = useReactFlow();
+
+  // Precomputed connections: mapping from a node's id to its hidden (precomputed) nodes/edges.
+  const [precomputedConnections, setPrecomputedConnections] = useState<
+    Record<string, { nodes: Node[]; edges: Edge[] }>
+  >({});
+
+  // Set up the WebSocket connection to receive precomputed connections.
+  useEffect(() => {
+    let baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+    if (!baseUrl) {
+      console.error("NEXT_PUBLIC_BACKEND_URL is not defined");
+      return;
+    }
+    const wsProtocol = baseUrl.startsWith("https") ? "wss" : "ws";
+    baseUrl = baseUrl.replace(/^https?:\/\//, "");
+    const wsUrl = `${wsProtocol}://${baseUrl}/ws/precomputations`;
+    console.log("Connecting to WebSocket:", wsUrl);
+    let socket: WebSocket;
+    try {
+      socket = new WebSocket(wsUrl);
+    } catch (err) {
+      console.error("Failed to create WebSocket:", err);
+      return;
+    }
+    socket.onmessage = (event) => {
+      try {
+        // Expect message format:
+        // { "authorId": [ { authorId, name }, ... ] }
+        const data = JSON.parse(event.data);
+        const newPrecomputed: Record<string, { nodes: Node[]; edges: Edge[] }> = {};
+        Object.entries(data).forEach(([parentId, connections]) => {
+          // Deduplicate connections by authorId.
+          const uniqueConnections = Array.from(
+            new Map((connections as any[]).map((conn) => [conn.authorId, conn])).values()
+          );
+          const nodesForParent = uniqueConnections.map((conn) => ({
+            id: conn.authorId,
+            type: "circle",
+            position: { x: 0, y: 0 },
+            data: {
+              label: conn.name,
+              expanded: false,
+              color: nodeColors[Math.floor(Math.random() * nodeColors.length)],
+            },
+          }));
+          const edgesForParent = nodesForParent.map((node) => ({
+            id: `e-${parentId}-${node.id}`,
+            source: parentId,
+            target: node.id,
+            animated: true,
+          }));
+          newPrecomputed[parentId] = { nodes: nodesForParent, edges: edgesForParent };
+        });
+        // Merge new precomputed connections with any previously stored.
+        setPrecomputedConnections((prev) => ({ ...prev, ...newPrecomputed }));
+        console.log("Received precomputed connections:", newPrecomputed);
+      } catch (e) {
+        console.error("Error parsing WebSocket message:", e);
+      }
+    };
+    socket.onopen = () => {
+      console.log("WebSocket connection established.");
+    };
+    socket.onerror = (event) => {
+      console.error("WebSocket error:", event);
+    };
+    socket.onclose = () => {
+      console.log("WebSocket connection closed.");
+    };
+    return () => {
+      socket.close();
+    };
+  }, []);
 
   const onConnect = useCallback(
     (params: Edge | Connection) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
-    [setEdges],
-  )
+    [setEdges]
+  );
 
-  const calculateNodePositions = useCallback(
-    (centerX: number, centerY: number, newNodesCount: number): { x: number; y: number }[] => {
-      const radius = 100
-      const angleStep = (2 * Math.PI) / newNodesCount
-
-      return Array.from({ length: newNodesCount }, (_, index) => {
-        const angle = index * angleStep
-        return {
-          x: centerX + radius * Math.cos(angle),
-          y: centerY + radius * Math.sin(angle),
-        }
-      })
-    },
-    [],
-  )
-
+  // On node click, expand the node to reveal its connections.
   const onNodeClick = useCallback(
     async (event: React.MouseEvent, node: Node) => {
-      const { nodes: newNodes, edges: newEdges } = await fetchRelatedNodes(node.id)
+      if (node.data.expanded) return; // Skip if already expanded.
 
-      let positionedNewNodes: Node[] = []
-      setNodes((nds) => {
-        const existingNodeIds = new Set(nds.map((n) => n.id))
-        const filteredNewNodes = newNodes.filter((n) => !existingNodeIds.has(n.id))
+      let newNodes: Node[] = [];
+      let newEdges: Edge[] = [];
 
-        const positions = calculateNodePositions(node.position.x, node.position.y, filteredNewNodes.length)
+      // Use precomputed connections if available.
+      if (precomputedConnections[node.id]) {
+        newNodes = precomputedConnections[node.id].nodes;
+        newEdges = precomputedConnections[node.id].edges;
+        const id = node.id;
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`,
+          { authorid: id }
+        );
+      } else {
+        // Otherwise, call the get-next_connections API.
+        try {
+          const id = node.id;
+          const response = await axios.post(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`,
+            { authorid: id }
+          );
+          // Expect a similar structure: { connections: [ { authorId, name }, ... ] }
+          const fetched = response.data.connections;
+          const uniqueConnections = Array.from(
+            new Map(fetched.map((conn: any) => [conn.authorId, conn])).values()
+          );
+          newNodes = uniqueConnections.map((conn: any) => ({
+            id: conn.authorId,
+            position: { x: 0, y: 0 },
+            type: "circle",
+            data: {
+              label: conn.name,
+              expanded: false,
+              color: nodeColors[Math.floor(Math.random() * nodeColors.length)],
+            },
+          }));
+          newEdges = newNodes.map((n) => ({
+            id: `e-${node.id}-${n.id}`,
+            source: node.id,
+            target: n.id,
+            animated: true,
+          }));
+        } catch (error) {
+          console.error("Error fetching next connections for node:", node.id, error);
+          return;
+        }
+      }
 
-        positionedNewNodes = filteredNewNodes.map((n, index) => ({
-          ...n,
-          type: "circle",
-          position: positions[index],
-          data: {
-            ...n.data,
-            color: nodeColors[Math.floor(Math.random() * nodeColors.length)],
-          },
-          style: { opacity: 0, scale: 0.5 },
-        }))
+      // Mark the node as expanded.
+      setNodes((nds) =>
+        nds.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, expanded: true } } : n))
+      );
 
-        return [...nds, ...positionedNewNodes]
-      })
+      // Calculate positions for the new nodes in a circle around the clicked node.
+      const centerX = node.position.x;
+      const centerY = node.position.y;
+      const radius = 150;
+      const angleStep = (2 * Math.PI) / (newNodes.length || 1);
+      const positionedNewNodes = newNodes.map((n, index) => ({
+        ...n,
+        position: {
+          x: centerX + radius * Math.cos(index * angleStep),
+          y: centerY + radius * Math.sin(index * angleStep),
+        },
+      }));
 
-      setEdges((eds) => {
-        const existingEdgeIds = new Set(eds.map((e) => e.id))
-        const filteredNewEdges = newEdges
-          .filter((e) => !existingEdgeIds.has(e.id))
-          .map((e) => ({ ...e, animated: true }))
-        return [...eds, ...filteredNewEdges]
-      })
+      // Add the new nodes and edges to the graph.
+      setNodes((nds) => [...nds, ...positionedNewNodes]);
+      setEdges((eds) => [...eds, ...newEdges]);
 
-      // Animate new nodes appearing
-      setTimeout(() => {
-        setNodes((nds) =>
-          nds.map((n) =>
-            newNodes.some((newNode) => newNode.id === n.id) ? { ...n, style: { opacity: 1, scale: 1 } } : n,
-          ),
-        )
-      }, 50)
-
-      // Center the view on the clicked node
-      setCenter(node.position.x, node.position.y, { duration: 800 })
+      // Optionally, center the view on the clicked node.
+      setCenter(node.position.x, node.position.y, { duration: 800 });
     },
-    [setNodes, setEdges, setCenter, calculateNodePositions],
-  )
+    [precomputedConnections, setNodes, setEdges, setCenter]
+  );
 
   const customEdgeStyles = useMemo(
     () => ({
@@ -143,8 +244,8 @@ function Flow() {
         color: "#b1b1b7",
       },
     }),
-    [],
-  )
+    []
+  );
 
   return (
     <ReactFlow
@@ -156,18 +257,19 @@ function Flow() {
       onNodeClick={onNodeClick}
       nodeTypes={nodeTypes}
       fitView
+      minZoom={0.5}
+      maxZoom={2}
       defaultEdgeOptions={customEdgeStyles}
     />
-  )
+  );
 }
 
-export default function DynamicGraph() {
+export default function DynamicGraph({ initialGraphData }: DynamicGraphProps) {
   return (
     <div className="w-full h-[600px] bg-gray-50 rounded-lg shadow-inner">
       <ReactFlowProvider>
-        <Flow />
+        <Flow initialGraphData={initialGraphData} />
       </ReactFlowProvider>
     </div>
-  )
+  );
 }
-
