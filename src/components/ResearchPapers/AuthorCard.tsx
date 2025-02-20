@@ -23,7 +23,7 @@ export default function AuthorCard({ author, isAdded, isRemoved, addAuthor, remo
   const handleAddAuthor = async () => {
     setIsAdding(true)
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors`, {
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors`, {
         name: author.name,
         institution: author.organisation_history?.[0] ?? "Unknown",
         note: author.grants?.join(", ") ?? null,

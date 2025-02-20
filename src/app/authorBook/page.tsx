@@ -1,21 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import BookComponent, { Author, Status } from "@/components/AuthorBook/Book"
+import BookComponent from "@/components/AuthorBook/Book"
+import { AuthorCRM, Status } from "@/types";
 
-// Define an interface for API response
-interface AuthorResponse {
-  id: number;
-  name: string;
-  institution: string;
-  note?: string;
-  state: Status;
-}
 
 export default function AuthorBook() {
   // Sample initial data
-  const [authors, setAuthors] = useState<Author[]>([]);
-
+  const [authors, setAuthors] = useState<AuthorCRM[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +16,7 @@ export default function AuthorBook() {
       try {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors`);
         setAuthors(
-          response.data.map((author: AuthorResponse) => ({
+          response.data.map((author: AuthorCRM) => ({
             id: author.id,
             name: author.name,
             institution: author.institution,
@@ -60,15 +52,19 @@ export default function AuthorBook() {
 
   const updateStatus = async (id: number, status: Status) => {
     try {
-      await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}/state`, { state: status });
+      await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}/state`, { 
+        id: id,
+        state: status 
+      });
+  
       setAuthors(authors.map((author) => (author.id === id ? { ...author, status } : author)));
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        console.log("");
+        console.error("Axios Error:", error.response?.data); // Log actual error
       }
       setError("Failed to update status");
     }
-  };
+  };  
 
   if (loading) return <div className="text-center text-emerald-700">Loading authors...</div>;
   if (error) return <div className="text-center text-red-500">{error}</div>;

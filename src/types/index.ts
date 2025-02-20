@@ -41,6 +41,18 @@ export interface Author {
   score: number | null; // Computed later
 }
 
+export interface AuthorCRM {
+  id: number;
+  created_at: string;
+  name: string;
+  institution: string;
+  note: string;
+  state: string;
+  openalex_id: string;
+}
+
+export type Status = "uncontacted" | "interested" | "uninterested" | "blocked";
+
 export interface Grant {
   organisation: string,
   title: string,
