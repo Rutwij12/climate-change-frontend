@@ -40,8 +40,13 @@ export default function AuthorBook() {
 
   const updateNotes = async (id: number, notes: string) => {
     try {
-      await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}/note`, { note: notes });
-      setAuthors(authors.map((author) => (author.id === id ? { ...author, notes } : author)));
+      await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}/note`, { 
+        author_id: id,
+        note: notes 
+      });
+      setAuthors((prev) =>
+        prev.map((author) => (author.id === id ? { ...author, note: notes } : author))
+      );
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         console.log("");
@@ -53,11 +58,13 @@ export default function AuthorBook() {
   const updateStatus = async (id: number, status: Status) => {
     try {
       await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}/state`, { 
-        id: id,
+        author_id: id,
         state: status 
       });
   
-      setAuthors(authors.map((author) => (author.id === id ? { ...author, status } : author)));
+      setAuthors((prev) =>
+        prev.map((author) => (author.id === id ? { ...author, state: status } : author))
+      );
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         console.error("Axios Error:", error.response?.data); // Log actual error

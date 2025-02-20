@@ -31,6 +31,7 @@ export default function AuthorCard({ author, isAdded, isRemoved, addAuthor, remo
       })
       addAuthor(author.name) // Update UI
     } catch (error) {
+      // Deal with the case when author already exists in the book
       if (axios.isAxiosError(error)) {
         console.error("Error adding author:", error.response?.data || error.message)
       } else {
