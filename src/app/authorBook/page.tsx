@@ -3,13 +3,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import BookComponent from "@/components/AuthorBook/Book"
 import { AuthorCRM, Status } from "@/types";
-
+import Sidebar from "@/components/ChatPanes/Sidebar";
 
 export default function AuthorBook() {
-  // Sample initial data
   const [authors, setAuthors] = useState<AuthorCRM[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchAuthors = async () => {
@@ -77,13 +77,21 @@ export default function AuthorBook() {
   if (error) return <div className="text-center text-red-500">{error}</div>;
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold text-center mb-8 text-emerald-800">Author Book</h1>
-      <BookComponent 
-        authors={authors} 
-        onUpdateNotes={updateNotes} 
-        onUpdateStatus={updateStatus} 
-      />
+    <div className="flex">
+      {/* Sidebar */}
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+
+      {/* Main Content (shifts when sidebar opens) */}
+      <div
+        className={`flex-1 transition-all duration-300 ${
+          sidebarOpen ? "ml-[200px]" : "ml-0"
+        } p-8`}
+      >
+        <h1 className="text-3xl font-bold text-center mb-8 text-emerald-800">
+          Author Book
+        </h1>
+        <BookComponent authors={authors} onUpdateNotes={updateNotes} onUpdateStatus={updateStatus} />
+      </div>
     </div>
   );
 }
