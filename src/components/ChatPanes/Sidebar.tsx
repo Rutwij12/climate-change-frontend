@@ -87,6 +87,7 @@ export default function Sidebar({
 
           {/* Author Book Button */}
           <button
+            onClick={() => router.push('/authorBook')}
             className="w-full bg-emerald-600 text-white py-2 px-4 rounded-md shadow-md text-center font-medium flex items-center justify-center gap-2"
           >
             <BookOpen size={20} />
