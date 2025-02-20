@@ -14,6 +14,13 @@ const statusConfig: Record<string, string> = {
   blocked: "bg-red-200 hover:bg-red-300 text-red-700",
 };
 
+const statusOutput: Record<string, string> = {
+  uncontacted: "Uncontacted",
+  interested: "Interested",
+  uninterested: "Uninterested",
+  blocked: "Blocked",
+};
+
 interface BookComponentProps {
   authors: AuthorCRM[];
   onUpdateNotes: (id: number, notes: string) => void;
@@ -48,7 +55,7 @@ export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus }
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button className={`w-32 ${statusConfig[author.state]}`} variant="ghost">
-                      {author.state}
+                      {statusOutput[author.state]}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
@@ -58,7 +65,7 @@ export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus }
                         onClick={() => onUpdateStatus(author.id, status as Status)}
                         className={`${statusConfig[status as Status]} cursor-pointer`}
                       >
-                        {status}
+                        {statusOutput[status]}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>

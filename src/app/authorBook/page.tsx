@@ -20,8 +20,8 @@ export default function AuthorBook() {
             id: author.id,
             name: author.name,
             institution: author.institution,
-            notes: author.note, // Backend uses "note", frontend uses "notes"
-            status: author.state, // Backend uses "state", frontend uses "status"
+            note: author.note,
+            state: author.state,
           }))
         );
       } catch (error: unknown) {
@@ -59,7 +59,7 @@ export default function AuthorBook() {
     try {
       await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}/state`, { 
         author_id: id,
-        state: status 
+        state: status
       });
   
       setAuthors((prev) =>
