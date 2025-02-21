@@ -14,6 +14,7 @@ import ReactFlow, {
   Position,
   MarkerType,
 } from "reactflow";
+import dagre from "dagre";
 import axios from "axios";
 import "reactflow/dist/style.css";
 
@@ -55,8 +56,50 @@ interface DynamicGraphProps {
   initialGraphData: GraphData;
 }
 
+// -------------------------
+// DAGRE LAYOUT CONFIGURATION
+// -------------------------
+const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = "TB") => {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
+  dagreGraph.setGraph({ rankdir: direction });
+
+  const nodeWidth = 100;
+  const nodeHeight = 100;
+
+  // Add nodes to Dagre
+  nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+  });
+
+  // Add edges to Dagre
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  // Compute the layout (this call is essential)
+  dagre.layout(dagreGraph);
+
+  // Update node positions based on Dagre results
+  const layoutedNodes = nodes.map((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    return {
+      ...node,
+      position: {
+        x: nodeWithPosition.x - nodeWidth / 2,
+        y: nodeWithPosition.y - nodeHeight / 2,
+      },
+    };
+  });
+
+  return { nodes: layoutedNodes, edges };
+};
+
+// -------------------------
+// MAIN FLOW COMPONENT
+// -------------------------
 function Flow({ initialGraphData }: DynamicGraphProps) {
-  // Normalize initial nodes (ensure type, color, and expanded flag).
+  // Normalize initial nodes.
   const normalizedNodes = initialGraphData.nodes.map((node) => ({
     ...node,
     type: node.type || "circle",
@@ -66,18 +109,27 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
       color: node.data?.color || nodeColors[Math.floor(Math.random() * nodeColors.length)],
       expanded: node.data?.expanded || false,
     },
+    // If no position is provided, default to { x: 0, y: 0 } (will be replaced by layout)
     position: node.position || { x: 0, y: 0 },
   }));
+
   const normalizedEdges = initialGraphData.edges.map((edge) => ({
     ...edge,
     animated: edge.animated ?? true,
   }));
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(normalizedNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(normalizedEdges);
+  // Use Dagre to compute positions for the initial graph.
+  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+    normalizedNodes,
+    normalizedEdges,
+    "TB"
+  );
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
   const { setCenter } = useReactFlow();
 
-  // Precomputed connections: mapping from a node's id to its hidden (precomputed) nodes/edges.
+  // Store precomputed connections for dynamic expansion.
   const [precomputedConnections, setPrecomputedConnections] = useState<
     Record<string, { nodes: Node[]; edges: Edge[] }>
   >({});
@@ -102,12 +154,11 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
     }
     socket.onmessage = (event) => {
       try {
-        // Expect message format:
-        // { "authorId": [ { authorId, name }, ... ] }
+        // Expected format: { "authorId": [ { authorId, name }, ... ] }
         const data = JSON.parse(event.data);
         const newPrecomputed: Record<string, { nodes: Node[]; edges: Edge[] }> = {};
         Object.entries(data).forEach(([parentId, connections]) => {
-          // Deduplicate connections by authorId.
+          // Remove duplicate connections.
           const uniqueConnections = Array.from(
             new Map((connections as any[]).map((conn) => [conn.authorId, conn])).values()
           );
@@ -127,9 +178,25 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
             target: node.id,
             animated: true,
           }));
-          newPrecomputed[parentId] = { nodes: nodesForParent, edges: edgesForParent };
+          // Arrange new nodes in a circle around the parent.
+          const parentNode = nodes.find((n) => n.id === parentId);
+          if (parentNode) {
+            const centerX = parentNode.position.x;
+            const centerY = parentNode.position.y;
+            const radius = 150;
+            const angleStep = (2 * Math.PI) / nodesForParent.length;
+            nodesForParent.forEach((n, index) => {
+              n.position = {
+                x: centerX + radius * Math.cos(index * angleStep),
+                y: centerY + radius * Math.sin(index * angleStep),
+              };
+            });
+          }
+          newPrecomputed[parentId] = {
+            nodes: nodesForParent,
+            edges: edgesForParent,
+          };
         });
-        // Merge new precomputed connections with any previously stored.
         setPrecomputedConnections((prev) => ({ ...prev, ...newPrecomputed }));
         console.log("Received precomputed connections:", newPrecomputed);
       } catch (e) {
@@ -148,14 +215,16 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
     return () => {
       socket.close();
     };
-  }, []);
+  }, [nodes]);
 
+  // Handle connecting nodes.
   const onConnect = useCallback(
-    (params: Edge | Connection) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
+    (params: Edge | Connection) =>
+      setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
     [setEdges]
   );
 
-  // On node click, expand the node to reveal its connections.
+  // When a node is clicked, expand it to reveal its connections.
   const onNodeClick = useCallback(
     async (event: React.MouseEvent, node: Node) => {
       if (node.data.expanded) return; // Skip if already expanded.
@@ -163,24 +232,19 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
       let newNodes: Node[] = [];
       let newEdges: Edge[] = [];
 
-      // Use precomputed connections if available.
       if (precomputedConnections[node.id]) {
         newNodes = precomputedConnections[node.id].nodes;
         newEdges = precomputedConnections[node.id].edges;
-        const id = node.id;
-        const response = await axios.post(
+        await axios.post(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`,
-          { authorid: id }
+          { authorid: node.id }
         );
       } else {
-        // Otherwise, call the get-next_connections API.
         try {
-          const id = node.id;
           const response = await axios.post(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`,
-            { authorid: id }
+            { authorid: node.id }
           );
-          // Expect a similar structure: { connections: [ { authorId, name }, ... ] }
           const fetched = response.data.connections;
           const uniqueConnections = Array.from(
             new Map(fetched.map((conn: any) => [conn.authorId, conn])).values()
@@ -202,17 +266,19 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
             animated: true,
           }));
         } catch (error) {
-          console.error("Error fetching next connections for node:", node.id, error);
+          console.error("Error fetching connections for node:", node.id, error);
           return;
         }
       }
 
       // Mark the node as expanded.
       setNodes((nds) =>
-        nds.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, expanded: true } } : n))
+        nds.map((n) =>
+          n.id === node.id ? { ...n, data: { ...n.data, expanded: true } } : n
+        )
       );
 
-      // Calculate positions for the new nodes in a circle around the clicked node.
+      // Arrange new nodes in a circle around the clicked node.
       const centerX = node.position.x;
       const centerY = node.position.y;
       const radius = 150;
@@ -225,14 +291,11 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
         },
       }));
 
-      // Add the new nodes and edges to the graph.
       setNodes((nds) => [...nds, ...positionedNewNodes]);
       setEdges((eds) => [...eds, ...newEdges]);
-
-      // Optionally, center the view on the clicked node.
       setCenter(node.position.x, node.position.y, { duration: 800 });
     },
-    [precomputedConnections, setNodes, setEdges, setCenter]
+    [precomputedConnections, setNodes, setEdges, setCenter, nodes]
   );
 
   const customEdgeStyles = useMemo(
