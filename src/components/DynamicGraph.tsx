@@ -235,15 +235,22 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
       if (precomputedConnections[node.id]) {
         newNodes = precomputedConnections[node.id].nodes;
         newEdges = precomputedConnections[node.id].edges;
+        const precomputedids = [];
+
+        for (var node of newNodes) {
+          precomputedids.push(node["id"])
+        }
+        
         await axios.post(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`,
-          { authorid: node.id }
+
+          { authorid: node.id, precomputed: precomputedids.slice(0,-1)}
         );
       } else {
         try {
           const response = await axios.post(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`,
-            { authorid: node.id }
+            { authorid: node.id, precomputed: [] }
           );
           const fetched = response.data.connections;
           const uniqueConnections = Array.from(
