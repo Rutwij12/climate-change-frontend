@@ -77,9 +77,8 @@ export default function AuthorBook() {
     try {
       await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}`, {});
   
-      setAuthors((prev) =>
-        prev.map((author) => (author.id === id ? { ...author} : author))
-      );
+      // Remove the deleted author from the state
+      setAuthors((prev) => prev.filter((author) => author.id !== id));
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         console.error("Axios Error:", error.response?.data); // Log actual error
