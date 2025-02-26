@@ -1,12 +1,24 @@
 "use client";
-import React from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import React, { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AuthorCRM, Status } from "@/types";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-// Define the status types and their colors
 const statusConfig: Record<string, string> = {
   uncontacted: "bg-gray-200 hover:bg-gray-300 text-gray-700",
   interested: "bg-emerald-200 hover:bg-emerald-300 text-emerald-700",
@@ -25,9 +37,12 @@ interface BookComponentProps {
   authors: AuthorCRM[];
   onUpdateNotes: (id: number, notes: string) => void;
   onUpdateStatus: (id: number, status: Status) => void;
+  onDeleteAuthor: (id: number) => void;
 }
 
-export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus }: BookComponentProps) {
+export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus, onDeleteAuthor }: BookComponentProps) {
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+
   return (
     <div className="rounded-lg border border-emerald-200 overflow-hidden">
       <Table>
@@ -37,6 +52,7 @@ export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus }
             <TableHead className="text-emerald-900 font-semibold">Author Institution</TableHead>
             <TableHead className="text-emerald-900 font-semibold">Notes</TableHead>
             <TableHead className="text-emerald-900 font-semibold">Status</TableHead>
+            <TableHead className="text-emerald-900 font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -71,10 +87,41 @@ export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus }
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
+              <TableCell>
+                <Button
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                  onClick={() => setConfirmDelete(author.id)}
+                >
+                  Remove Author
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      {/* Confirmation Dialog */}
+      {confirmDelete !== null && (
+        <Dialog open={true} onOpenChange={() => setConfirmDelete(null)}>
+          <DialogContent className="text-center">
+            <DialogHeader>
+              <DialogTitle>Are you sure you want to remove this author?</DialogTitle>
+            </DialogHeader>
+            <DialogFooter className="flex justify-center gap-4">
+              <Button variant="outline" onClick={() => setConfirmDelete(null)}>No</Button>
+              <Button
+                className="bg-red-500 hover:bg-red-600 text-white"
+                onClick={() => {
+                  onDeleteAuthor(confirmDelete);
+                  setConfirmDelete(null);
+                }}
+              >
+                Yes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

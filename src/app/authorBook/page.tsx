@@ -73,6 +73,21 @@ export default function AuthorBook() {
     }
   };  
 
+  const deleteAuthor = async (id: number) => {
+    try {
+      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/${id}`, {});
+  
+      setAuthors((prev) =>
+        prev.map((author) => (author.id === id ? { ...author} : author))
+      );
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error("Axios Error:", error.response?.data); // Log actual error
+      }
+      setError("Failed to delete auhtor");
+    }
+  }; 
+
   if (loading) return <div className="text-center text-emerald-700">Loading authors...</div>;
   if (error) return <div className="text-center text-red-500">{error}</div>;
 
@@ -90,7 +105,7 @@ export default function AuthorBook() {
         <h1 className="text-3xl font-bold text-center mb-8 text-emerald-800">
           Author Book
         </h1>
-        <BookComponent authors={authors} onUpdateNotes={updateNotes} onUpdateStatus={updateStatus} />
+        <BookComponent authors={authors} onUpdateNotes={updateNotes} onUpdateStatus={updateStatus} onDeleteAuthor={deleteAuthor} />
       </div>
     </div>
   );
