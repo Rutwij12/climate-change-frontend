@@ -122,8 +122,27 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
   const { setCenter } = useReactFlow();
 
-  // onNodeClick: fetch next connections from the backend.
+  // State for author info.
+  const [authorInfo, setAuthorInfo] = useState<any>(null);
+
+  // Single click: fetch author information.
   const onNodeClick = useCallback(
+    async (event: React.MouseEvent, node: Node) => {
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_auth_info`,
+           { authorid: node.id } 
+        );
+        setAuthorInfo(response.data);
+      } catch (error) {
+        console.error("Error fetching author info for node:", node.id, error);
+      }
+    },
+    []
+  );
+
+  // Double click: expand the node.
+  const onNodeDoubleClick = useCallback(
     async (event: React.MouseEvent, node: Node) => {
       // If the node is already expanded, do nothing.
       if (node.data.expanded) return;
@@ -193,7 +212,9 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
       // Optionally center the view on the clicked node.
       const updatedClickedNode = layoutedNodes.find((n) => n.id === node.id);
       if (updatedClickedNode) {
-        setCenter(updatedClickedNode.position.x, updatedClickedNode.position.y, { duration: 800 });
+        setCenter(updatedClickedNode.position.x, updatedClickedNode.position.y, {
+          duration: 800,
+        });
       }
     },
     [nodes, edges, setNodes, setEdges, setCenter]
@@ -212,20 +233,33 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
   );
 
   return (
-    <div className="relative w-full h-[600px] bg-gray-50 rounded-lg shadow-inner">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeClick={onNodeClick}
-        // onNodeDoubleClick={onNodeDOubleClick}
-        nodeTypes={nodeTypes}
-        fitView
-        minZoom={0.5}
-        maxZoom={2}
-        defaultEdgeOptions={customEdgeStyles}
-      />
+    <div>
+      <div className="relative w-full h-[600px] bg-gray-50 rounded-lg shadow-inner">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeClick={onNodeClick}
+          onNodeDoubleClick={onNodeDoubleClick}
+          nodeTypes={nodeTypes}
+          fitView
+          minZoom={0.5}
+          maxZoom={2}
+          defaultEdgeOptions={customEdgeStyles}
+        />
+      </div>
+      {/* Author Information Display */}
+      <div className="mt-4 p-4 bg-white rounded shadow">
+        <h3 className="text-lg font-bold mb-2">Author Information</h3>
+        {authorInfo ? (
+          <pre className="text-sm whitespace-pre-wrap">
+            {JSON.stringify(authorInfo, null, 2)}
+          </pre>
+        ) : (
+          <p className="text-gray-500">Click on a node to view author info.</p>
+        )}
+      </div>
     </div>
   );
 }
