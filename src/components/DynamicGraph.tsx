@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import ReactFlow, {
   Node,
   Edge,
   useNodesState,
   useEdgesState,
-  addEdge,
-  Connection,
   useReactFlow,
   ReactFlowProvider,
   Handle,
@@ -18,7 +16,7 @@ import dagre from "dagre";
 import axios from "axios";
 import "reactflow/dist/style.css";
 
-// Fixed node color (green).
+// Fixed node color.
 const fixedColor = "#28a745";
 
 // Custom node component.
@@ -29,8 +27,18 @@ function CircleNode({ data, isConnectable }: any) {
       style={{ backgroundColor: data.color }}
     >
       <div className="text-xs font-semibold text-white">{data.label}</div>
-      <Handle type="target" position={Position.Top} isConnectable={isConnectable} className="w-3 h-3" />
-      <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} className="w-3 h-3" />
+      <Handle
+        type="target"
+        position={Position.Top}
+        isConnectable={isConnectable}
+        className="w-3 h-3"
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        isConnectable={isConnectable}
+        className="w-3 h-3"
+      />
     </div>
   );
 }
@@ -85,9 +93,6 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = "TB") => 
 // MAIN FLOW COMPONENT
 // -------------------------
 function Flow({ initialGraphData }: DynamicGraphProps) {
-  // Author info state.
-  const [authorInfo, setAuthorInfo] = useState<any>(null);
-
   // Normalize initial nodes.
   const normalizedNodes = initialGraphData.nodes.map((node) => ({
     ...node,
@@ -106,7 +111,7 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
     animated: edge.animated ?? true,
   }));
 
-  // Use Dagre to compute positions.
+  // Compute initial layout.
   const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
     normalizedNodes,
     normalizedEdges,
@@ -117,97 +122,53 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
   const { setCenter } = useReactFlow();
 
-  const nodesRef = useRef(nodes);
-  useEffect(() => {
-    nodesRef.current = nodes;
-  }, [nodes]);
-
-  // Ref to control click/double-click timing.
-  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Example precomputed connections state (if used elsewhere)
-  const [precomputedConnections, setPrecomputedConnections] = useState<
-    Record<string, { nodes: Node[]; edges: Edge[] }>
-  >({});
-
-  // onNodeClick handler: sends the clicked node's id to the backend to fetch author info.
+  // onNodeClick: fetch next connections from the backend.
   const onNodeClick = useCallback(
     async (event: React.MouseEvent, node: Node) => {
-      // Set a timeout to distinguish single click from double click.
-      clickTimeoutRef.current = setTimeout(async () => {
-        try {
-          const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_auth_info`,
-            { authorid: node.id }
-          );
-          setAuthorInfo(response.data);
-        } catch (error) {
-          console.error("Error fetching author info:", error);
-        }
-        clickTimeoutRef.current = null;
-      }, 200);
-    },
-    []
-  );
-
-  // onNodeDoubleClick handler for node expansion.
-  const onNodeDoubleClick = useCallback(
-    async (event: React.MouseEvent, node: Node) => {
-      // Prevent the single-click action.
-      if (clickTimeoutRef.current) {
-        clearTimeout(clickTimeoutRef.current);
-        clickTimeoutRef.current = null;
-      }
+      // If the node is already expanded, do nothing.
       if (node.data.expanded) return;
+
       let newNodes: Node[] = [];
       let newEdges: Edge[] = [];
 
-      if (precomputedConnections[node.id]) {
-        newNodes = precomputedConnections[node.id].nodes;
-        newEdges = precomputedConnections[node.id].edges;
-        const precomputedids: string[] = newNodes.map((n) => n.id);
-        await axios.post(
+      try {
+        const response = await axios.post(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`,
-          { authorid: node.id, precomputed: precomputedids.slice(0, -1) }
+          { authorid: node.id }
         );
-      } else {
-        try {
-          const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`,
-            { authorid: node.id, precomputed: [] }
-          );
-          const fetched = response.data.connections;
-          const uniqueConnections = Array.from(
-            new Map(fetched.map((conn: any) => [conn.authorId, conn])).values()
-          );
-          newNodes = uniqueConnections.map((conn: any) => ({
-            id: conn.authorId,
-            position: { x: 0, y: 0 },
-            type: "circle",
-            data: {
-              label: conn.name,
-              expanded: false,
-              color: fixedColor,
-            },
-          }));
-          newEdges = newNodes.map((n) => ({
-            id: `e-${node.id}-${n.id}`,
-            source: node.id,
-            target: n.id,
-            animated: true,
-          }));
-        } catch (error) {
-          console.error("Error fetching connections for node:", node.id, error);
-          return;
-        }
+        const fetched = response.data.connections;
+        const uniqueConnections = Array.from(
+          new Map(fetched.map((conn: any) => [conn.authorId, conn])).values()
+        );
+        newNodes = uniqueConnections.map((conn: any) => ({
+          id: conn.authorId,
+          position: { x: 0, y: 0 },
+          type: "circle",
+          data: {
+            label: conn.name,
+            expanded: false,
+            color: fixedColor,
+          },
+        }));
+        newEdges = newNodes.map((n) => ({
+          id: `e-${node.id}-${n.id}`,
+          source: node.id,
+          target: n.id,
+          animated: true,
+        }));
+      } catch (error) {
+        console.error("Error fetching connections for node:", node.id, error);
+        return;
       }
 
+      // Mark the node as expanded.
       setNodes((nds) =>
         nds.map((n) =>
           n.id === node.id ? { ...n, data: { ...n.data, expanded: true } } : n
         )
       );
 
+      // Position new nodes in a circle around the clicked node.
       const centerX = node.position.x;
       const centerY = node.position.y;
       const radius = 150;
@@ -223,20 +184,19 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
       const updatedNodes = [...nodes, ...positionedNewNodes];
       const updatedEdges = [...edges, ...newEdges];
 
-      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-        updatedNodes,
-        updatedEdges,
-        "TB"
-      );
+      // Recompute layout.
+      const { nodes: layoutedNodes, edges: layoutedEdges } =
+        getLayoutedElements(updatedNodes, updatedEdges, "TB");
       setNodes(layoutedNodes);
       setEdges(layoutedEdges);
 
+      // Optionally center the view on the clicked node.
       const updatedClickedNode = layoutedNodes.find((n) => n.id === node.id);
       if (updatedClickedNode) {
         setCenter(updatedClickedNode.position.x, updatedClickedNode.position.y, { duration: 800 });
       }
     },
-    [precomputedConnections, nodes, edges, setNodes, setEdges, setCenter]
+    [nodes, edges, setNodes, setEdges, setCenter]
   );
 
   const customEdgeStyles = useMemo(
@@ -258,23 +218,14 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onNodeClick={onNodeClick}       // Single click for author info
-        onNodeDoubleClick={onNodeDoubleClick} // Double click for expansion
+        onNodeClick={onNodeClick}
+        // onNodeDoubleClick={onNodeDOubleClick}
         nodeTypes={nodeTypes}
         fitView
         minZoom={0.5}
         maxZoom={2}
         defaultEdgeOptions={customEdgeStyles}
       />
-      {authorInfo && (
-        <div className="absolute bottom-0 left-0 right-0 p-2 bg-white border-t border-gray-300">
-          <textarea
-            readOnly
-            className="w-full h-24 p-2 text-sm"
-            value={JSON.stringify(authorInfo, null, 2)}
-          />
-        </div>
-      )}
     </div>
   );
 }
