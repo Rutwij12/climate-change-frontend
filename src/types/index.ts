@@ -79,3 +79,12 @@ export interface ChatHistory {
   message_count: number;
   name: string;
 }
+
+export interface ChatHistoryMessage {
+  id: number;
+  created_at: string;
+  content: string;
+  chat_id: number;
+  order: number;
+  user_message: boolean;
+}

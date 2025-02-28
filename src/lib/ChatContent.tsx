@@ -10,7 +10,7 @@ import React, {
 import { ChatMessage_T } from "@/types";
 import { CloudRain } from "lucide-react";
 import axios from "axios";
-import { ChatHistory } from "@/types";
+import { ChatHistory, ChatHistoryMessage } from "@/types";
 
 // Define the shape of the context
 interface ChatContextType {
@@ -91,10 +91,29 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const fetchChatMessages = async (chatId: number) => {
     try {
       // Mock API call (replace with actual API call)
-      const response = await axios.get<ChatMessage_T[]>(
+      const response = await axios.get<ChatHistoryMessage[]>(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/messages`
       );
-      setMessages(response.data);
+      
+      const formattedMessages : ChatMessage_T[] = response.data.map((msg) => {
+        if (msg.user_message) {
+          // User message: store content directly
+          return {
+            id: msg.id,
+            type: "user",
+            content: msg.content,
+          };
+        } else {
+          // LLM message: parse the content
+          return {
+            id: msg.id,
+            type: "llm",
+            content: parseMessageContent(msg.content),
+          };
+        }
+      });
+
+      setMessages(formattedMessages);
     } catch (error) {
       console.error("Failed to fetch chat messages:", error);
     }
