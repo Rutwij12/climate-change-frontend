@@ -6,14 +6,12 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import ClimateChat from "@/components/ChatPanes/ClimateChatContent";
 import ResearchPaperList from "@/components/ChatPanes/ResearchPapersList";
 import { Challenge } from "@/types";
-import { useChatContext } from "@/lib/ChatContent";
 
 export default function ChatWithResearch() {
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [leftPaneWidth, setLeftPaneWidth] = useState(50);
   const [isResizing, setIsResizing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Track sidebar state
-  const { chatHistory } = useChatContext();
   
   const mockOnChatSelect = (title: string) => {
     console.log(`Selected chat: ${title}`);
@@ -49,7 +47,6 @@ export default function ChatWithResearch() {
       <Sidebar 
         sidebarOpen={sidebarOpen} 
         setSidebarOpen={setSidebarOpen} 
-        chatHistory={chatHistory} 
         onChatSelect={mockOnChatSelect}
       />
 

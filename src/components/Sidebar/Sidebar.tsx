@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChatHistory } from "@/types";
+import { useChatContext } from "@/lib/ChatContent";
 
 // ChatHistoryItem Component
 function ChatHistoryItem({ title, onClick }: { title: string; onClick: () => void }) {
@@ -25,15 +25,15 @@ function ChatHistoryItem({ title, onClick }: { title: string; onClick: () => voi
 export default function Sidebar({
   sidebarOpen,
   setSidebarOpen,
-  chatHistory,
   onChatSelect,
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
-  chatHistory: ChatHistory[]; // Make a new object??? TODO
   onChatSelect: (title: string) => void;
 }) {
   const router = useRouter();
+  
+  const { chatHistory } = useChatContext();
 
   const handleNewChat = () => {
     router.push('/');

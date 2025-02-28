@@ -11,6 +11,10 @@ export default function AuthorBook() {
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const mockOnChatSelect = (title: string) => {
+    console.log(`Selected chat: ${title}`);
+  };
+
   useEffect(() => {
     const fetchAuthors = async () => {
       try {
@@ -93,7 +97,11 @@ export default function AuthorBook() {
   return (
     <div className="flex">
       {/* Sidebar */}
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <Sidebar 
+        sidebarOpen={sidebarOpen} 
+        setSidebarOpen={setSidebarOpen} 
+        onChatSelect={mockOnChatSelect}
+      />
 
       {/* Main Content (shifts when sidebar opens) */}
       <div

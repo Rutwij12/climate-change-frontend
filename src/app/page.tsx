@@ -11,7 +11,6 @@ export default function Home() {
   const { createNewMessages } = useChatContext();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const { chatHistory } = useChatContext();
   
   const mockOnChatSelect = (title: string) => {
     console.log(`Selected chat: ${title}`);
@@ -69,7 +68,6 @@ export default function Home() {
       <Sidebar 
         sidebarOpen={sidebarOpen} 
         setSidebarOpen={setSidebarOpen} 
-        chatHistory={chatHistory} 
         onChatSelect={mockOnChatSelect}
       />
       
