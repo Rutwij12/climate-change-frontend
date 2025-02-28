@@ -4,21 +4,14 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useChatContext } from "@/lib/ChatContent";
-import Sidebar from "@/components/ChatPanes/Sidebar";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 export default function Home() {
   const [input, setInput] = useState("");
   const { createNewMessages } = useChatContext();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  const mockChatHistory = [
-    "Discussing Next.js performance optimizations",
-    "React Server Components and their benefits",
-    "Understanding Kafka and event-driven architectures",
-    "Improving UI/UX with user research insights",
-    "Exploring algorithmic trading strategies",
-  ];
+  const { chatHistory } = useChatContext();
   
   const mockOnChatSelect = (title: String) => {
     console.log(`Selected chat: ${title}`);
@@ -76,7 +69,7 @@ export default function Home() {
       <Sidebar 
         sidebarOpen={sidebarOpen} 
         setSidebarOpen={setSidebarOpen} 
-        chatHistory={mockChatHistory} 
+        chatHistory={chatHistory} 
         onChatSelect={mockOnChatSelect}
       />
       

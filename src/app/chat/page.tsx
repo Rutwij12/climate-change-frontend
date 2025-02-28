@@ -2,24 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Sidebar from "@/components/ChatPanes/Sidebar";
+import Sidebar from "@/components/Sidebar/Sidebar";
 import ClimateChat from "@/components/ChatPanes/ClimateChatContent";
 import ResearchPaperList from "@/components/ChatPanes/ResearchPapersList";
 import { Challenge } from "@/types";
+import { useChatContext } from "@/lib/ChatContent";
 
 export default function ChatWithResearch() {
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [leftPaneWidth, setLeftPaneWidth] = useState(50);
   const [isResizing, setIsResizing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Track sidebar state
-
-  const mockChatHistory = [
-    "Discussing Next.js performance optimizations",
-    "React Server Components and their benefits",
-    "Understanding Kafka and event-driven architectures",
-    "Improving UI/UX with user research insights",
-    "Exploring algorithmic trading strategies",
-  ];
+  const { chatHistory } = useChatContext();
   
   const mockOnChatSelect = (title: String) => {
     console.log(`Selected chat: ${title}`);
@@ -55,7 +49,7 @@ export default function ChatWithResearch() {
       <Sidebar 
         sidebarOpen={sidebarOpen} 
         setSidebarOpen={setSidebarOpen} 
-        chatHistory={mockChatHistory} 
+        chatHistory={chatHistory} 
         onChatSelect={mockOnChatSelect}
       />
 

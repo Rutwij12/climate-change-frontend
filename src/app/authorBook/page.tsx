@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import BookComponent from "@/components/AuthorBook/Book"
 import { AuthorCRM, Status } from "@/types";
-import Sidebar from "@/components/ChatPanes/Sidebar";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 export default function AuthorBook() {
   const [authors, setAuthors] = useState<AuthorCRM[]>([]);
