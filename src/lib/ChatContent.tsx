@@ -70,7 +70,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const chunk = progressEvent.event.target.response;
           if (chunk) {
             console.log("chunk:", chunk);
-            let accumulatedText = chunk.replace(/```|json|markdown/g, "");
+            const accumulatedText = chunk.replace(/```|json|markdown/g, "");
             const jsonStartIndex = accumulatedText.indexOf("{");
 
             if (jsonStartIndex !== -1) {

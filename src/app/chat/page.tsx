@@ -15,7 +15,7 @@ export default function ChatWithResearch() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // Track sidebar state
   const { chatHistory } = useChatContext();
   
-  const mockOnChatSelect = (title: String) => {
+  const mockOnChatSelect = (title: string) => {
     console.log(`Selected chat: ${title}`);
   };
 

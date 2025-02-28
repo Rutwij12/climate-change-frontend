@@ -13,7 +13,7 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { chatHistory } = useChatContext();
   
-  const mockOnChatSelect = (title: String) => {
+  const mockOnChatSelect = (title: string) => {
     console.log(`Selected chat: ${title}`);
   };
   
