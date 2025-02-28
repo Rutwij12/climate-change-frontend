@@ -14,6 +14,7 @@ interface ChatContextType {
   query: string;
   setQuery: React.Dispatch<React.SetStateAction<string>>;
   createNewMessages: (content: string) => Promise<void>;
+  fetchChatMessages: (chatId: number) => Promise<void>;
 }
 
 // Create the context
@@ -38,6 +39,16 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     fetchChatHistory();
   }, []);
+
+  const fetchChatMessages = async (chatId: number) => {
+    try {
+      // Mock API call (replace with actual API call)
+      const response = await axios.get<ChatMessage_T[]>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}`);
+      setMessages(response.data);
+    } catch (error) {
+      console.error("Failed to fetch chat messages:", error);
+    }
+  };
 
   const createNewMessages = async (content: string) => {
     const userMessage: ChatMessage_T = {
@@ -126,7 +137,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <ChatContext.Provider value={{ chatHistory, setChatHistory, messages, query, setQuery, createNewMessages }}>
+    <ChatContext.Provider value={{ chatHistory, setChatHistory, messages, query, setQuery, createNewMessages, fetchChatMessages }}>
       {children}
     </ChatContext.Provider>
   );

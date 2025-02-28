@@ -11,10 +11,12 @@ import {
 import { useChatContext } from "@/lib/ChatContent";
 
 // ChatHistoryItem Component
-function ChatHistoryItem({ title, onClick }: { title: string; onClick: () => void }) {
+function ChatHistoryItem({ chatId, title }: { chatId: number; title: string }) {
+  const { fetchChatMessages } = useChatContext();
+
   return (
     <button
-      onClick={onClick}
+      onClick={() => fetchChatMessages(chatId)}
       className="w-full text-left bg-emerald-700 hover:bg-emerald-600 text-white py-2 px-4 rounded-md shadow-md mb-2 overflow-hidden text-ellipsis whitespace-nowrap"
     >
       <span className="block truncate">{title}</span>
@@ -25,14 +27,11 @@ function ChatHistoryItem({ title, onClick }: { title: string; onClick: () => voi
 export default function Sidebar({
   sidebarOpen,
   setSidebarOpen,
-  onChatSelect,
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
-  onChatSelect: (title: string) => void;
 }) {
   const router = useRouter();
-  
   const { chatHistory } = useChatContext();
 
   const handleNewChat = () => {
@@ -119,7 +118,7 @@ export default function Sidebar({
           <div>
             {chatHistory.length > 0 ? (
               chatHistory.map((chat, index) => (
-                <ChatHistoryItem key={index} title={chat.name} onClick={() => onChatSelect(chat.name)} />
+                <ChatHistoryItem key={chat.id} chatId={chat.id} title={chat.name} />
               ))
             ) : (
               <p className="text-sm text-gray-300">No chat history</p>

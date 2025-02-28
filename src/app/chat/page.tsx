@@ -12,10 +12,6 @@ export default function ChatWithResearch() {
   const [leftPaneWidth, setLeftPaneWidth] = useState(50);
   const [isResizing, setIsResizing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Track sidebar state
-  
-  const mockOnChatSelect = (title: string) => {
-    console.log(`Selected chat: ${title}`);
-  };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -47,7 +43,6 @@ export default function ChatWithResearch() {
       <Sidebar 
         sidebarOpen={sidebarOpen} 
         setSidebarOpen={setSidebarOpen} 
-        onChatSelect={mockOnChatSelect}
       />
 
       {/* Main Content */}

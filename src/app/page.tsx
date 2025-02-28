@@ -12,10 +12,6 @@ export default function Home() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
-  const mockOnChatSelect = (title: string) => {
-    console.log(`Selected chat: ${title}`);
-  };
-  
   // Example questions to cycle through
   const exampleQuestions = [
     "What are some challenges in the aviation industry?",
@@ -68,7 +64,6 @@ export default function Home() {
       <Sidebar 
         sidebarOpen={sidebarOpen} 
         setSidebarOpen={setSidebarOpen} 
-        onChatSelect={mockOnChatSelect}
       />
       
       {/* Main Content */}
