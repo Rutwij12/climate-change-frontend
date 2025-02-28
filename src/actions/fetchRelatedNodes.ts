@@ -6,7 +6,7 @@ let nodeCounter = 13 // Starting after our initial nodes
 
 export async function fetchRelatedNodes(nodeId: string): Promise<{ nodes: Node[]; edges: Edge[] }> {
   // Create 5 new nodes
-  const newNodes: Node[] = Array.from({ length: 5 }, (_, index) => {
+  const newNodes: Node[] = Array.from({ length: 5 }, () => {
     nodeCounter++
     return {
       id: nodeCounter.toString(),

@@ -4,13 +4,14 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import DynamicGraph from "@/components/DynamicGraph";
+import type { Node, Edge } from "reactflow";
 
 interface ApiResponse {
   connections: {
     authorId: string;
     name: string;
   }[];
-  precomputations: Record<string, any>;
+  precomputations: Record<string, unknown>;
 }
 
 export default function GraphPage() {
@@ -18,7 +19,7 @@ export default function GraphPage() {
   const authorid = searchParams.get("authorid") || "";
   const paperid = searchParams.get("paperid") || "";
 
-  const [graphData, setGraphData] = useState<{ nodes: any[]; edges: any[] } | null>(null);
+  const [graphData, setGraphData] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,11 +33,11 @@ export default function GraphPage() {
         const data = response.data;
 
         // Create a central node for the original author.
-        const centralNode = {
+        const centralNode: Node = {
           id: authorid,
           type: "circle",
-          position: { x: 400, y: 300 }, // Set the center position
-          data: { label: "Central Author", expanded: false },
+          position: { x: 400, y: 300 },
+          data: { label: "CENTRAL", expanded: false },
         };
 
         // Deduplicate connections by authorId.
@@ -44,15 +45,15 @@ export default function GraphPage() {
         data.connections.forEach((conn) => {
           connectionMap.set(conn.authorId, conn);
         });
-        const connectionNodes = Array.from(connectionMap.values()).map((conn) => ({
+        const connectionNodes: Node[] = Array.from(connectionMap.values()).map((conn) => ({
           id: conn.authorId,
           type: "circle",
-          position: { x: 0, y: 0 }, // Temporary position; will be laid out by DynamicGraph
+          position: { x: 0, y: 0 },
           data: { label: conn.name, expanded: false },
         }));
 
         // Create an edge from the central node to each connection node.
-        const connectionEdges = connectionNodes.map((node) => ({
+        const connectionEdges: Edge[] = connectionNodes.map((node) => ({
           id: `e-${centralNode.id}-${node.id}`,
           source: centralNode.id,
           target: node.id,
@@ -63,9 +64,13 @@ export default function GraphPage() {
           nodes: [centralNode, ...connectionNodes],
           edges: connectionEdges,
         });
-      } catch (err: any) {
-        console.error("Error fetching initial graph data:", err);
-        setError(err.message || "Error fetching data");
+      } catch (error: unknown) {
+        console.error("Error fetching initial graph data:", error);
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError("An unexpected error occurred");
+        }
       } finally {
         setLoading(false);
       }
