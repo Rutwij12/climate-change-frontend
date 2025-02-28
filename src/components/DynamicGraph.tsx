@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState, useEffect, useMemo, useRef } from "react"
+import React, { useCallback, useState, useEffect, useMemo, useRef } from "react"
 import ReactFlow, {
   type Node,
   type Edge,
@@ -17,6 +17,7 @@ import ReactFlow, {
 } from "reactflow"
 import dagre from "dagre"
 import axios from "axios"
+import PropTypes from "prop-types"
 import { User, BookOpen, Award, MapPin, Link2, Hash, Briefcase, FileText } from "lucide-react"
 import "reactflow/dist/style.css"
 
@@ -69,6 +70,18 @@ function CustomNode({ data, isConnectable, selected }) {
     </div>
   )
 }
+
+CustomNode.propTypes = {
+  data: PropTypes.shape({
+    label: PropTypes.string.isRequired,
+    color: PropTypes.string,
+    size: PropTypes.number,
+    isExpanded: PropTypes.bool,
+    isPrimary: PropTypes.bool,
+  }).isRequired,
+  isConnectable: PropTypes.bool.isRequired,
+  selected: PropTypes.bool.isRequired,
+};
 
 const nodeTypes = { custom: CustomNode }
 
@@ -164,7 +177,7 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges)
-  const [selectedNode, setSelectedNode] = useState(null)
+  // const [selectedNode, setSelectedNode] = useState(null)
   const [authorInfo, setAuthorInfo] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const { fitView, setCenter } = useReactFlow()
@@ -181,7 +194,7 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
 
   // Function to handle single click
   const handleSingleClick = useCallback(async (node) => {
-    setSelectedNode(node)
+    // setSelectedNode(node)
     setIsLoading(true)
 
     try {
