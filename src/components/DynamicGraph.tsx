@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import React, { useCallback, useState, useEffect, useMemo, useRef } from "react";
+import { useCallback, useState, useEffect, useMemo, useRef } from "react"
 import ReactFlow, {
   type Node,
   type Edge,
@@ -14,12 +14,11 @@ import ReactFlow, {
   Background,
   Controls,
   Panel,
-} from "reactflow";
-import dagre from "dagre";
-import axios from "axios";
-import PropTypes from "prop-types";
-import { User, BookOpen, Award, MapPin, Link2, Hash, Briefcase, FileText } from "lucide-react";
-import "reactflow/dist/style.css";
+} from "reactflow"
+import dagre from "dagre"
+import axios from "axios"
+import { User, BookOpen, Award, MapPin, Link2, Hash, Briefcase, FileText } from "lucide-react"
+import "reactflow/dist/style.css"
 
 // Updated Node types and colors with green shades
 const NODE_TYPES = {
@@ -27,11 +26,11 @@ const NODE_TYPES = {
   standard: "#27ae60", // Nephritis green for standard nodes
   expanded: "#16a085", // Green blue for expanded nodes
   selected: "#1abc9c", // Turquoise for selected nodes
-};
+}
 
 // Custom node component with auto-sizing text and border
 function CustomNode({ data, isConnectable, selected }) {
-  const fontSize = Math.max(8, Math.min(12, 14 - data.label.length / 8));
+  const fontSize = Math.max(8, Math.min(12, 14 - data.label.length / 8))
 
   return (
     <div
@@ -68,71 +67,58 @@ function CustomNode({ data, isConnectable, selected }) {
         style={{ borderColor: data.color }}
       />
     </div>
-  );
+  )
 }
 
-// Add PropTypes to satisfy ESLint's react/prop-types rule
-CustomNode.propTypes = {
-  data: PropTypes.shape({
-    label: PropTypes.string.isRequired,
-    color: PropTypes.string,
-    size: PropTypes.number,
-    isExpanded: PropTypes.bool,
-    isPrimary: PropTypes.bool,
-  }).isRequired,
-  isConnectable: PropTypes.bool.isRequired,
-  selected: PropTypes.bool.isRequired,
-};
-
-const nodeTypes = { custom: CustomNode };
+const nodeTypes = { custom: CustomNode }
 
 interface GraphData {
-  nodes: Node[];
-  edges: Edge[];
+  nodes: Node[]
+  edges: Edge[]
 }
 
 interface DynamicGraphProps {
-  initialGraphData: GraphData;
+  initialGraphData: GraphData
 }
 
 // Layout utilities
 const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = "TB") => {
-  const dagreGraph = new dagre.graphlib.Graph();
-  dagreGraph.setDefaultEdgeLabel(() => ({}));
-  dagreGraph.setGraph({ rankdir: direction });
+  const dagreGraph = new dagre.graphlib.Graph()
+  dagreGraph.setDefaultEdgeLabel(() => ({}))
+  dagreGraph.setGraph({ rankdir: direction })
 
   // Use different node sizes based on type
   nodes.forEach((node) => {
-    const nodeSize = node.data?.size || 100; // Increased default size
-    dagreGraph.setNode(node.id, { width: nodeSize, height: nodeSize });
-  });
+    const nodeSize = node.data?.size || 100 // Increased default size
+    dagreGraph.setNode(node.id, { width: nodeSize, height: nodeSize })
+  })
 
   edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
-  });
+    dagreGraph.setEdge(edge.source, edge.target)
+  })
 
-  dagre.layout(dagreGraph);
+  dagre.layout(dagreGraph)
 
   const layoutedNodes = nodes.map((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
-    const nodeSize = node.data?.size || 100; // Increased default size
+    const nodeWithPosition = dagreGraph.node(node.id)
+    const nodeSize = node.data?.size || 100 // Increased default size
     return {
       ...node,
       position: {
         x: nodeWithPosition.x - nodeSize / 2,
         y: nodeWithPosition.y - nodeSize / 2,
       },
-    };
-  });
+    }
+  })
 
-  return { nodes: layoutedNodes, edges };
-};
+  return { nodes: layoutedNodes, edges }
+}
 
 // Arrange nodes in a circle around a center point
 const arrangeNodesInCircle = (centerNode: Node, newNodes: Node[], radius = 250) => {
-  const centerX = centerNode.position.x;
-  const centerY = centerNode.position.y;
-  const angleStep = (2 * Math.PI) / newNodes.length;
+  const centerX = centerNode.position.x
+  const centerY = centerNode.position.y
+  const angleStep = (2 * Math.PI) / newNodes.length
 
   return newNodes.map((node, index) => ({
     ...node,
@@ -140,8 +126,8 @@ const arrangeNodesInCircle = (centerNode: Node, newNodes: Node[], radius = 250) 
       x: centerX + radius * Math.cos(index * angleStep),
       y: centerY + radius * Math.sin(index * angleStep),
     },
-  }));
-};
+  }))
+}
 
 function Flow({ initialGraphData }: DynamicGraphProps) {
   // Format initial nodes with proper styling
@@ -157,7 +143,7 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
       size: index === 0 ? 120 : 100,
     },
     position: node.position || { x: 0, y: 0 },
-  }));
+  }))
 
   const normalizedEdges = initialGraphData.edges.map((edge, index) => ({
     ...edge,
@@ -171,74 +157,67 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
       type: MarkerType.ArrowClosed,
       color: "#2ecc71", // Updated to a green shade
     },
-  }));
+  }))
 
   // Compute initial layout
-  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(normalizedNodes, normalizedEdges);
+  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(normalizedNodes, normalizedEdges)
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
-  // Removed unused selectedNode state
-  const [authorInfo, setAuthorInfo] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { fitView, setCenter } = useReactFlow();
+  const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges)
+  const [selectedNode, setSelectedNode] = useState(null)
+  const [authorInfo, setAuthorInfo] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const { fitView, setCenter } = useReactFlow()
 
   // Apply layout when nodes or edges change
   useEffect(() => {
     const timer = setTimeout(() => {
-      fitView({ padding: 0.2, duration: 800 });
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [fitView]);
+      fitView({ padding: 0.2, duration: 800 })
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [fitView])
 
-  const clickTimeoutRef = useRef(null);
+  const clickTimeoutRef = useRef(null)
 
   // Function to handle single click
-  const handleSingleClick = useCallback(
-    async (node) => {
-      setIsLoading(true);
-      try {
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_auth_info`, {
-          authorid: node.id,
-        });
-        setAuthorInfo(response.data);
-        // Update the node's label with the correct author name
-        setNodes((nds) =>
-          nds.map((n) =>
-            n.id === node.id ? { ...n, data: { ...n.data, label: response.data.name || n.data.label } } : n,
-          ),
-        );
-      } catch (error) {
-        console.error("Error fetching author info:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [setNodes],
-  );
+  const handleSingleClick = useCallback(async (node) => {
+    setSelectedNode(node)
+    setIsLoading(true)
+
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_auth_info`, {
+        authorid: node.id,
+      })
+      setAuthorInfo(response.data)
+    } catch (error) {
+      console.error("Error fetching author info:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
 
   // Function to handle double click
   const handleDoubleClick = useCallback(
     async (event, node) => {
       // Prevent re-expansion of already expanded nodes
-      if (node.data.expanded) return;
+      if (node.data.expanded) return
 
-      setIsLoading(true);
+      setIsLoading(true)
 
       try {
         const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`, {
           authorid: node.id,
-        });
+        })
 
-        const connections = response.data.connections;
+        const connections = response.data.connections
 
         // Filter out duplicates and already existing nodes
-        const existingNodeIds = new Set(nodes.map((n) => n.id));
-        const uniqueConnections = connections.filter((conn) => !existingNodeIds.has(conn.authorId));
+        const existingNodeIds = new Set(nodes.map((n) => n.id))
+        const uniqueConnections = connections.filter((conn) => !existingNodeIds.has(conn.authorId))
 
         if (uniqueConnections.length === 0) {
-          console.log("No new connections found");
-          return;
+          console.log("No new connections found")
+          return
         }
 
         // Create new nodes
@@ -253,7 +232,7 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
             isPrimary: false,
             size: 100,
           },
-        }));
+        }))
 
         // Create new edges
         const newEdges = newNodes.map((n) => ({
@@ -269,7 +248,7 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
             type: MarkerType.ArrowClosed,
             color: "#2ecc71", // Updated to a green shade
           },
-        }));
+        }))
 
         // Mark the current node as expanded and change its color
         setNodes((nds) =>
@@ -292,56 +271,56 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
                   },
                 },
           ),
-        );
+        )
 
         // Position new nodes in a circle around the clicked node
-        const positionedNewNodes = arrangeNodesInCircle(node, newNodes);
+        const positionedNewNodes = arrangeNodesInCircle(node, newNodes)
 
         // Update the graph with new nodes and edges
-        const updatedNodes = [...nodes, ...positionedNewNodes];
-        const updatedEdges = [...edges, ...newEdges];
+        const updatedNodes = [...nodes, ...positionedNewNodes]
+        const updatedEdges = [...edges, ...newEdges]
 
         // Apply layout to ensure clean arrangement
-        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(updatedNodes, updatedEdges);
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(updatedNodes, updatedEdges)
 
-        setNodes(layoutedNodes);
-        setEdges(layoutedEdges);
+        setNodes(layoutedNodes)
+        setEdges(layoutedEdges)
 
         // Center view on the expanded node
-        setCenter(node.position.x, node.position.y, { duration: 800 });
+        setCenter(node.position.x, node.position.y, { duration: 800 })
       } catch (error) {
-        console.error("Error fetching connections:", error);
+        console.error("Error fetching connections:", error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     },
     [nodes, edges, setNodes, setEdges, setCenter],
-  );
+  )
 
   // Single click handler - fetch author info
   const onNodeClick = useCallback(
     (event, node) => {
-      event.preventDefault();
+      event.preventDefault()
 
       if (clickTimeoutRef.current) {
         // Double click detected
-        clearTimeout(clickTimeoutRef.current);
-        clickTimeoutRef.current = null;
-        handleDoubleClick(event, node);
+        clearTimeout(clickTimeoutRef.current)
+        clickTimeoutRef.current = null
+        handleDoubleClick(event, node)
       } else {
         // Set timeout for single click
         clickTimeoutRef.current = setTimeout(() => {
-          clickTimeoutRef.current = null;
-          handleSingleClick(node);
-        }, 250); // 250ms delay
+          clickTimeoutRef.current = null
+          handleSingleClick(node)
+        }, 250) // 250ms delay
       }
     },
     [handleSingleClick, handleDoubleClick],
-  );
+  )
 
   // Format author information for display
   const formattedAuthorInfo = useMemo(() => {
-    if (!authorInfo) return null;
+    if (!authorInfo) return null
 
     return {
       name: authorInfo.name || "Unknown",
@@ -352,19 +331,8 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
       hindex: authorInfo.hindex || 0,
       orcid: authorInfo.orcid || null,
       country: authorInfo.profile?.addresses?.address?.[0]?.country?.value || null,
-    };
-  }, [authorInfo]);
-
-  const [fetchedCentral, setFetchedCentral] = useState(false);
-  useEffect(() => {
-    if (!fetchedCentral) {
-      const centralNode = nodes.find((node) => node.data.label === "CENTRAL");
-      if (centralNode) {
-        handleSingleClick(centralNode);
-        setFetchedCentral(true);
-      }
     }
-  }, [nodes, fetchedCentral, handleSingleClick]);
+  }, [authorInfo])
 
   return (
     <div className="flex flex-col gap-6">
@@ -490,9 +458,9 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
                 <button
                   className="text-sm text-green-600 hover:text-green-800 flex items-center gap-1"
                   onClick={() => {
-                    const detailsEl = document.getElementById("author-details");
+                    const detailsEl = document.getElementById("author-details")
                     if (detailsEl) {
-                      detailsEl.open = !detailsEl.open;
+                      detailsEl.open = !detailsEl.open
                     }
                   }}
                 >
@@ -531,7 +499,7 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 export default function DynamicGraph({ initialGraphData }: DynamicGraphProps) {
@@ -539,5 +507,5 @@ export default function DynamicGraph({ initialGraphData }: DynamicGraphProps) {
     <ReactFlowProvider>
       <Flow initialGraphData={initialGraphData} />
     </ReactFlowProvider>
-  );
+  )
 }
