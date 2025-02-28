@@ -26,7 +26,7 @@ interface ChatContextType {
 // Create the context
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-// Add this new function before the ChatProvider component
+// Parse message content into a new message object
 const parseMessageContent = (text: string) => {
   const accumulatedText = text.replace(/```|json|markdown/g, "");
   const jsonStartIndex = accumulatedText.indexOf("{");
