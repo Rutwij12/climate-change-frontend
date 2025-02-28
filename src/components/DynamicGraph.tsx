@@ -18,7 +18,17 @@ import ReactFlow, {
 import dagre from "dagre";
 import axios from "axios";
 import PropTypes from "prop-types";
-import { User, BookOpen, Award, MapPin, Link2, Hash, Briefcase, FileText } from "lucide-react";
+import {
+  User,
+  BookOpen,
+  Award,
+  MapPin,
+  Link2,
+  Hash,
+  Briefcase,
+  FileText,
+  Copy,
+} from "lucide-react";
 import "reactflow/dist/style.css";
 
 // Updated Node types and colors with green shades
@@ -334,6 +344,12 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
       country: authorInfo.profile?.addresses?.address?.[0]?.country?.value || null,
     };
   }, [authorInfo]);
+
+  // Handler for copying the JSON data to clipboard
+  const handleCopy = () => {
+    navigator.clipboard.writeText(JSON.stringify(authorInfo, null, 2));
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="relative w-full h-[600px] bg-slate-50 rounded-xl shadow-lg overflow-hidden">
@@ -455,36 +471,22 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
 
             {authorInfo && authorInfo.profile && (
               <div className="col-span-1 md:col-span-2 mt-2">
-                <button
-                  className="text-sm text-green-600 hover:text-green-800 flex items-center gap-1"
-                  onClick={() => {
-                    const detailsEl = document.getElementById("author-details")
-                    if (detailsEl) {
-                      detailsEl.open = !detailsEl.open
-                    }
-                  }}
-                >
-                  <span>View full profile data</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
+
 
                 <details id="author-details" className="mt-2">
                   <summary className="cursor-pointer text-sm text-slate-500">Raw profile data</summary>
-                  <pre className="mt-2 p-4 bg-slate-50 rounded-lg text-xs overflow-auto max-h-60">
-                    {JSON.stringify(authorInfo, null, 2)}
-                  </pre>
+                  <div className="relative">
+                    <div
+                      className="absolute top-2 right-2 cursor-pointer text-slate-500 hover:text-slate-700"
+                      onClick={handleCopy}
+                      title="Copy JSON"
+                    >
+                      <Copy className="h-5 w-5" />
+                    </div>
+                    <pre className="mt-2 p-4 bg-slate-50 rounded-lg text-xs overflow-auto max-h-60">
+                      {JSON.stringify(authorInfo, null, 2)}
+                    </pre>
+                  </div>
                 </details>
               </div>
             )}
@@ -499,7 +501,7 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export default function DynamicGraph({ initialGraphData }: DynamicGraphProps) {
@@ -507,5 +509,5 @@ export default function DynamicGraph({ initialGraphData }: DynamicGraphProps) {
     <ReactFlowProvider>
       <Flow initialGraphData={initialGraphData} />
     </ReactFlowProvider>
-  )
+  );
 }
