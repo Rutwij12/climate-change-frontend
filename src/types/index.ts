@@ -71,3 +71,11 @@ export interface Paper {
   abstract: string;
   publication_date: string;
 }
+
+export interface ChatHistory {
+  id: number;
+  created_at: string;
+  type: string;
+  message_count: number;
+  name: string;
+}

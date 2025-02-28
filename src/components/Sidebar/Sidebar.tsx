@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ChatHistory } from "@/types";
 
 // ChatHistoryItem Component
 function ChatHistoryItem({ title, onClick }: { title: string; onClick: () => void }) {
@@ -29,7 +30,7 @@ export default function Sidebar({
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
-  chatHistory: string[]; // Make a new object??? TODO
+  chatHistory: ChatHistory[]; // Make a new object??? TODO
   onChatSelect: (title: string) => void;
 }) {
   const router = useRouter();
@@ -118,7 +119,7 @@ export default function Sidebar({
           <div>
             {chatHistory.length > 0 ? (
               chatHistory.map((chat, index) => (
-                <ChatHistoryItem key={index} title={chat} onClick={() => onChatSelect(chat)} />
+                <ChatHistoryItem key={index} title={chat.name} onClick={() => onChatSelect(chat.name)} />
               ))
             ) : (
               <p className="text-sm text-gray-300">No chat history</p>

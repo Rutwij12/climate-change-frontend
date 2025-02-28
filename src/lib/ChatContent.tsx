@@ -4,11 +4,12 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { ChatMessage_T } from "@/types";
 import { CloudRain } from "lucide-react";
 import axios from "axios";
+import { ChatHistory } from "@/types";
 
 // Define the shape of the context
 interface ChatContextType {
-  chatHistory: string[];
-  setChatHistory: (history: string[]) => void;
+  chatHistory: ChatHistory[];
+  setChatHistory: (history: ChatHistory[]) => void;
   messages: ChatMessage_T[];
   query: string;
   setQuery: React.Dispatch<React.SetStateAction<string>>;
@@ -20,21 +21,19 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 // Provider component to wrap the application
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [chatHistory, setChatHistory] = useState<string[]>([]);
+  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [messages, setMessages] = useState<ChatMessage_T[]>([]);
   const [query, setQuery] = useState("");
 
   // Fetch chat history (Mock API call or replace with real API call)
   useEffect(() => {
     const fetchChatHistory = async () => {
-      const mockData = [
-        "Discussing Next.js performance optimizations",
-        "React Server Components and their benefits",
-        "Understanding Kafka and event-driven architectures",
-        "Improving UI/UX with user research insights",
-        "Exploring algorithmic trading strategies",
-      ];
-      setChatHistory(mockData);
+      try {
+        const response = await axios.get<ChatHistory[]>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`);
+        setChatHistory(response.data);
+      } catch (error) {
+        console.error("Failed to fetch chat history:", error);
+      }
     };
 
     fetchChatHistory();
