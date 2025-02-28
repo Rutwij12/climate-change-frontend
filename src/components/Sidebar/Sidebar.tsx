@@ -13,10 +13,18 @@ import { useChatContext } from "@/lib/ChatContent";
 // ChatHistoryItem Component
 function ChatHistoryItem({ chatId, title }: { chatId: number; title: string }) {
   const { fetchChatMessages } = useChatContext();
+  const router = useRouter();
 
   return (
     <button
-      onClick={() => fetchChatMessages(chatId)}
+      onClick={() => {
+        // First fetch the chat messages
+        fetchChatMessages(chatId);
+        
+        // Then navigate to the chat page
+        router.push("/chat");
+        }
+      }
       className="w-full text-left bg-emerald-700 hover:bg-emerald-600 text-white py-2 px-4 rounded-md shadow-md mb-2 overflow-hidden text-ellipsis whitespace-nowrap"
     >
       <span className="block truncate">{title}</span>
