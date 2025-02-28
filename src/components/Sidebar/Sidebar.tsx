@@ -117,7 +117,7 @@ export default function Sidebar({
           <h2 className="text-lg font-semibold mb-3">Chat History</h2>
           <div>
             {chatHistory.length > 0 ? (
-              chatHistory.map((chat, index) => (
+              chatHistory.map((chat) => (
                 <ChatHistoryItem key={chat.id} chatId={chat.id} title={chat.name} />
               ))
             ) : (

@@ -43,7 +43,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const fetchChatMessages = async (chatId: number) => {
     try {
       // Mock API call (replace with actual API call)
-      const response = await axios.get<ChatMessage_T[]>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}`);
+      const response = await axios.get<ChatMessage_T[]>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/messages`);
       setMessages(response.data);
     } catch (error) {
       console.error("Failed to fetch chat messages:", error);
