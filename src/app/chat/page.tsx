@@ -13,6 +13,18 @@ export default function ChatWithResearch() {
   const [isResizing, setIsResizing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Track sidebar state
 
+  const mockChatHistory = [
+    "Discussing Next.js performance optimizations",
+    "React Server Components and their benefits",
+    "Understanding Kafka and event-driven architectures",
+    "Improving UI/UX with user research insights",
+    "Exploring algorithmic trading strategies",
+  ];
+  
+  const mockOnChatSelect = (title: String) => {
+    console.log(`Selected chat: ${title}`);
+  };
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isResizing) {
@@ -40,7 +52,12 @@ export default function ChatWithResearch() {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <Sidebar 
+        sidebarOpen={sidebarOpen} 
+        setSidebarOpen={setSidebarOpen} 
+        chatHistory={mockChatHistory} 
+        onChatSelect={mockOnChatSelect}
+      />
 
       {/* Main Content */}
       <div

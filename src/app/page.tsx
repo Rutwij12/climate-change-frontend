@@ -11,6 +11,18 @@ export default function Home() {
   const { createNewMessages } = useChatContext();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const mockChatHistory = [
+    "Discussing Next.js performance optimizations",
+    "React Server Components and their benefits",
+    "Understanding Kafka and event-driven architectures",
+    "Improving UI/UX with user research insights",
+    "Exploring algorithmic trading strategies",
+  ];
+  
+  const mockOnChatSelect = (title: String) => {
+    console.log(`Selected chat: ${title}`);
+  };
   
   // Example questions to cycle through
   const exampleQuestions = [
@@ -61,7 +73,12 @@ export default function Home() {
 
   return (
     <div className="relative flex">
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <Sidebar 
+        sidebarOpen={sidebarOpen} 
+        setSidebarOpen={setSidebarOpen} 
+        chatHistory={mockChatHistory} 
+        onChatSelect={mockOnChatSelect}
+      />
       
       {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? "ml-[200px]" : "ml-0"}`}>

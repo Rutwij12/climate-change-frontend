@@ -9,12 +9,28 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+// ChatHistoryItem Component
+function ChatHistoryItem({ title, onClick }: { title: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left bg-emerald-700 hover:bg-emerald-600 text-white py-2 px-4 rounded-md shadow-md mb-2 overflow-hidden text-ellipsis whitespace-nowrap"
+    >
+      <span className="block truncate">{title}</span>
+    </button>
+  );
+}
+
 export default function Sidebar({
   sidebarOpen,
   setSidebarOpen,
+  chatHistory,
+  onChatSelect,
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  chatHistory: string[]; // Make a new object??? TODO
+  onChatSelect: (title: string) => void;
 }) {
   const router = useRouter();
 
@@ -93,6 +109,22 @@ export default function Sidebar({
             <BookOpen size={20} />
             Author Book
           </button>
+
+          {/* Divider */}
+          <hr className="my-4 border-emerald-500" />
+
+          {/* Chat History Section */}
+          <h2 className="text-lg font-semibold mb-3">Chat History</h2>
+          <div>
+            {chatHistory.length > 0 ? (
+              chatHistory.map((chat, index) => (
+                <ChatHistoryItem key={index} title={chat} onClick={() => onChatSelect(chat)} />
+              ))
+            ) : (
+              <p className="text-sm text-gray-300">No chat history</p>
+            )}
+          </div>
+
         </div>
       </div>
     </div>
