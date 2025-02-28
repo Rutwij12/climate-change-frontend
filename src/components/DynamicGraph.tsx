@@ -40,7 +40,18 @@ const NODE_TYPES = {
 };
 
 // Custom node component with auto-sizing text and border
-function CustomNode({ data, isConnectable, selected }) {
+interface CustomNodeProps {
+  data: {
+    label: string;
+    color?: string;
+    size?: number;
+    isExpanded?: boolean;
+  };
+  isConnectable: boolean;
+  selected: boolean;
+}
+
+function CustomNode({ data, isConnectable, selected }: CustomNodeProps) {
   const fontSize = Math.max(8, Math.min(12, 14 - data.label.length / 8));
 
   return (
