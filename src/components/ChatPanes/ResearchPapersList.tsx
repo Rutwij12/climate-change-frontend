@@ -17,6 +17,9 @@ export default function ResearchPapersList({ challenge, onClose }: ResearchPaper
 
   useEffect(() => {
     const fetchPapers = async () => {
+      setLoading(true);
+      setPapers([]);
+
       try {
         const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/papers/search`, {
           query: challenge.name,
@@ -50,7 +53,10 @@ export default function ResearchPapersList({ challenge, onClose }: ResearchPaper
       {/* List of Research Papers*/}
       <div className="p-4">
         {loading ? (
-          <p className="text-center mt-4">Loading papers...</p>
+          <div className="flex flex-col items-center">
+            <p className="text-2xl font-bold text-gray-700 mb-4">Loading papers...</p>
+            <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
         ) : error ? (
           <p className="text-center mt-4 text-red-600">{error}</p>
         ) : papers.length === 0 ? (
