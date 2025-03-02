@@ -41,6 +41,7 @@ export default function AuthorCard({
       });
       addAuthor(author.name);
     } catch (error) {
+      // Deal with the case when author already exists in the book
       if (axios.isAxiosError(error)) {
         console.error("Error adding author:", error.response?.data || error.message);
       } else {

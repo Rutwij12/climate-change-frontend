@@ -8,6 +8,29 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useChatContext } from "@/lib/ChatContent";
+
+// ChatHistoryItem Component
+function ChatHistoryItem({ chatId, title }: { chatId: number; title: string }) {
+  const { fetchChatMessages } = useChatContext();
+  const router = useRouter();
+
+  return (
+    <button
+      onClick={() => {
+        // First fetch the chat messages
+        fetchChatMessages(chatId);
+        
+        // Then navigate to the chat page
+        router.push("/chat");
+        }
+      }
+      className="w-full text-left bg-emerald-700 hover:bg-emerald-600 text-white py-2 px-4 rounded-md shadow-md mb-2 overflow-hidden text-ellipsis whitespace-nowrap"
+    >
+      <span className="block truncate">{title}</span>
+    </button>
+  );
+}
 
 export default function Sidebar({
   sidebarOpen,
@@ -17,6 +40,7 @@ export default function Sidebar({
   setSidebarOpen: (open: boolean) => void;
 }) {
   const router = useRouter();
+  const { chatHistory } = useChatContext();
 
   const handleNewChat = () => {
     router.push('/');
@@ -93,6 +117,22 @@ export default function Sidebar({
             <BookOpen size={20} />
             Author Book
           </button>
+
+          {/* Divider */}
+          <hr className="my-4 border-emerald-500" />
+
+          {/* Chat History Section */}
+          <h2 className="text-lg font-semibold mb-3">Chat History</h2>
+          <div>
+            {chatHistory.length > 0 ? (
+              chatHistory.map((chat) => (
+                <ChatHistoryItem key={chat.id} chatId={chat.id} title={chat.name} />
+              ))
+            ) : (
+              <p className="text-sm text-gray-300">No chat history</p>
+            )}
+          </div>
+
         </div>
       </div>
     </div>

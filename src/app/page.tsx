@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useChatContext } from "@/lib/ChatContent";
-import Sidebar from "@/components/ChatPanes/Sidebar";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -61,7 +61,10 @@ export default function Home() {
 
   return (
     <div className="relative flex">
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <Sidebar 
+        sidebarOpen={sidebarOpen} 
+        setSidebarOpen={setSidebarOpen} 
+      />
       
       {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? "ml-[200px]" : "ml-0"}`}>

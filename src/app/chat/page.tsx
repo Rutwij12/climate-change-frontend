@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Sidebar from "@/components/ChatPanes/Sidebar";
+import Sidebar from "@/components/Sidebar/Sidebar";
 import ClimateChat from "@/components/ChatPanes/ClimateChatContent";
 import ResearchPaperList from "@/components/ChatPanes/ResearchPapersList";
 import { Challenge } from "@/types";
@@ -40,7 +40,10 @@ export default function ChatWithResearch() {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <Sidebar 
+        sidebarOpen={sidebarOpen} 
+        setSidebarOpen={setSidebarOpen} 
+      />
 
       {/* Main Content */}
       <div
