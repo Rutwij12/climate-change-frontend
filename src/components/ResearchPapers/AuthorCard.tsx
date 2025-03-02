@@ -52,15 +52,27 @@ export default function AuthorCard({ author, isAdded, isRemoved, addAuthor, remo
     >
       <div className="flex-1">
         <h4 className="text-lg font-semibold text-green-700">{author.name}</h4>
-        <p className="text-sm text-green-600">Citations: {author.citations}</p>
-        <p className="text-sm text-green-600">h-index: {author.hindex}</p>
-        <p className="text-sm text-green-600">ORCID: {author.orcid}</p>
+
+        <p className="text-sm text-green-600">
+          Citations: {author.citations ?? "Not available"}
+        </p>
+
+        <p className="text-sm text-green-600">
+          h-index: {author.hindex ?? "Not available"}
+        </p>
+
+        <p className="text-sm text-green-600">
+          ORCID: {author.orcid || "Not available"}
+        </p>
+
         <p className="text-sm text-green-600">
           Organisation History: {author.organisation_history?.join(", ") || "Unknown"}
         </p>
+
         <p className="text-sm text-green-600">
           Grants: {author.grants?.map(grant => grant.funder).join(", ") || "None"}
         </p>
+        
         {author.website ? (
           <a
             href={author.website}
