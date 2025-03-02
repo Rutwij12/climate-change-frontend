@@ -33,7 +33,7 @@ export interface Author {
   organisation_history: string[];
   orcid: string;
   hindex: number;
-  grants: string[];
+  grants: Grant[];
   grant_org_name: string;
   website: string;
   openAlexid: string;
@@ -54,11 +54,11 @@ export interface AuthorCRM {
 export type Status = "uncontacted" | "interested" | "uninterested" | "blocked";
 
 export interface Grant {
-  organisation: string,
-  title: string,
-  category: string,
-  value: number,
-  funder: string
+  organisation: string;
+  title: string;
+  category: string;
+  value: number;
+  funder: string;
 }
 
 export interface Paper {

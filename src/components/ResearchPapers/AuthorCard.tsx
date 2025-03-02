@@ -58,15 +58,21 @@ export default function AuthorCard({ author, isAdded, isRemoved, addAuthor, remo
         <p className="text-sm text-green-600">
           Organisation History: {author.organisation_history?.join(", ") || "Unknown"}
         </p>
-        <p className="text-sm text-green-600">Grants: {author.grants?.join(", ") || "None"}</p>
-        <a
-          href={author.website}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:underline"
-        >
-          Website
-        </a>
+        <p className="text-sm text-green-600">
+          Grants: {author.grants?.map(grant => grant.funder).join(", ") || "None"}
+        </p>
+        {author.website ? (
+          <a
+            href={author.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline"
+          >
+            Website
+          </a>
+        ) : (
+          <p className="text-sm text-green-600">No website available</p>
+        )}
       </div>
 
       <div className="flex flex-col space-y-2 ml-4">
