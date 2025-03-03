@@ -130,7 +130,7 @@ export default function Sidebar({
                 <ChatHistoryItem key={chat.id} chatId={chat.id} title={chat.name} />
               ))
             ) : (
-              <p className="text-sm text-gray-300">No chat history</p>
+              <p className="text-sm text-gray-300">Loading chat history</p>
             )}
           </div>
 

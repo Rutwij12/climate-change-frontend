@@ -11,7 +11,7 @@ export default function ChatWithResearch() {
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [leftPaneWidth, setLeftPaneWidth] = useState(50);
   const [isResizing, setIsResizing] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Track sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(true); // Track sidebar state
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
