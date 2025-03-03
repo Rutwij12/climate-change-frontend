@@ -38,7 +38,6 @@ export interface Author {
   website: string;
   openAlexid: string;
   works_count: number;
-  score: number | null; // Computed later
 }
 
 export interface AuthorCRM {

@@ -50,13 +50,12 @@ const mockPaper: Paper = {
     {
       name: "John Doe",
       openAlexid: "Mock ID",
-      score: 10,
       citations: 120,
       dob: "13/02/2025",
       hindex: 15,
       orcid: "0000-0001-2345-6789",
       organisation_history: ["University A", "Company B"],
-      grants: ["Grant 1", "Grant 2"],
+      grants: [],
       grant_org_name: "Imperial College London",
       works_count: 69,
       website: "https://example.com"

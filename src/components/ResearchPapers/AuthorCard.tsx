@@ -11,8 +11,8 @@ interface AuthorCardProps {
   author: Author
   isAdded: boolean
   isRemoved: boolean
-  addAuthor: (authorName: string) => void
-  removeAuthor: (authorName: string) => void
+  addAuthor: (authorName: string) => Promise<void>
+  removeAuthor: (authorName: string) => Promise<void>
 }
 
 export default function AuthorCard({ author, isAdded, isRemoved, addAuthor, removeAuthor }: AuthorCardProps) {
