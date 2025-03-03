@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom' // to use .toBeInTheDocument()
-import { render, screen } from '@testing-library/react'
+import React, { render, screen } from '@testing-library/react'
 import ChatMessage from '@/components/ClimateChat/ChatMessage'
 import { ChatMessage_T, LLMResponse } from '@/types'
 

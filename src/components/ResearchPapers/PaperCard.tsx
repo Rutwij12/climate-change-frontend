@@ -98,6 +98,7 @@ export default function PaperCard({ paper }: { paper: Paper | undefined }) {
                       isRemoved={removedAuthors[author.name]}
                       addAuthor={addAuthor}
                       removeAuthor={removeAuthor}
+                      paperId = {paper.openalex_id}
                     />
                   ))}
                   <Button
