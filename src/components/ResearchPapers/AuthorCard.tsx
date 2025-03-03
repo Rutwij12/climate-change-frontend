@@ -1,11 +1,12 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { UserPlus, Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { motion } from "framer-motion"
-import axios from "axios"
-import { Author } from "@/types"
+import React, { useState } from "react";
+import { UserPlus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import axios from "axios";
+import { Author } from "@/types";
+import { useRouter } from "next/navigation";
 
 interface AuthorCardProps {
   author: Author
@@ -13,34 +14,49 @@ interface AuthorCardProps {
   isRemoved: boolean
   addAuthor: (authorName: string) => Promise<void>
   removeAuthor: (authorName: string) => Promise<void>
+  paperId: string; 
 }
 
-export default function AuthorCard({ author, isAdded, isRemoved, addAuthor, removeAuthor }: AuthorCardProps) {
-  const [isAdding, setIsAdding] = useState(false)
+export default function AuthorCard({
+  author,
+  isAdded,
+  isRemoved,
+  addAuthor,
+  removeAuthor,
+  paperId,
+}: AuthorCardProps) {
+  const [isAdding, setIsAdding] = useState(false);
+  const router = useRouter();
 
-  if (isRemoved) return null
+  if (isRemoved) return null;
 
   const handleAddAuthor = async () => {
-    setIsAdding(true)
+    setIsAdding(true);
     try {
       await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors`, {
         name: author.name,
         institution: author.organisation_history?.[0] ?? "Unknown",
         note: author.grants?.join(", ") ?? null,
-        openalex_id: author.openAlexid || "", // Ensure a string is sent
-      })
-      addAuthor(author.name) // Update UI
+        openalex_id: author.openAlexid || "",
+      });
+      addAuthor(author.name);
     } catch (error) {
       // Deal with the case when author already exists in the book
       if (axios.isAxiosError(error)) {
-        console.error("Error adding author:", error.response?.data || error.message)
+        console.error("Error adding author:", error.response?.data || error.message);
       } else {
-        console.error("Unexpected error:", error)
+        console.error("Unexpected error:", error);
       }
     } finally {
-      setIsAdding(false)
+      setIsAdding(false);
     }
-  }
+  };
+
+  const handleSeeGraph = () => {
+    const author_id = author.openAlexid || "unknownAuthor";
+    // Redirect to /graph with query parameters for authorid and paperid.
+    router.push(`/graph?authorid=${author_id}&paperid=${paperId}`);
+  };
 
   return (
     <motion.div
@@ -108,7 +124,16 @@ export default function AuthorCard({ author, isAdded, isRemoved, addAuthor, remo
           <Trash2 className="h-4 w-4 mr-2" />
           Remove
         </Button>
+
+        <Button
+          size="sm"
+          className="bg-blue-100 border-blue-400 text-blue-600"
+          variant="outline"
+          onClick={handleSeeGraph}
+        >
+          See Graph
+        </Button>
       </div>
     </motion.div>
-  )
+  );
 }

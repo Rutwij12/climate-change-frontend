@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import React, { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import LLMResponseMessage from '@/components/ClimateChat/LLMResponseMessage'
 import { Challenge } from '@/types';

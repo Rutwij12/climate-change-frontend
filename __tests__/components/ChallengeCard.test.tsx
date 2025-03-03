@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { render, screen } from '@testing-library/react';
+import React, { render, screen } from '@testing-library/react';
 import ChallengeCard from '@/components/ClimateChat/ChallengeCard';
 import { Challenge } from '@/types';
 
