@@ -40,10 +40,11 @@ export default function Sidebar({
   setSidebarOpen: (open: boolean) => void;
 }) {
   const router = useRouter();
-  const { chatHistory } = useChatContext();
+  const { chatHistory, createNewChat } = useChatContext();
 
   const handleNewChat = () => {
-    router.push('/');
+    createNewChat();
+    router.push('/chat');
   };
 
   return (

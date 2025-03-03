@@ -21,6 +21,7 @@ interface ChatContextType {
   setQuery: React.Dispatch<React.SetStateAction<string>>;
   createNewMessages: (content: string) => Promise<void>;
   fetchChatMessages: (chatId: number) => Promise<void>;
+  createNewChat: () => Promise<void>;
 }
 
 // Create the context
@@ -71,6 +72,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [messages, setMessages] = useState<ChatMessage_T[]>([]);
   const [query, setQuery] = useState("");
+  const [chatId, setChatId] = useState<number | null>(null);
 
   // Fetch chat history (Mock API call or replace with real API call)
   useEffect(() => {
@@ -87,6 +89,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
     fetchChatHistory();
   }, []);
+
+  const createNewChat = async () => {
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/chat`);
+      const newChatId = response.data.id;
+
+      setChatId(newChatId); // Save new chat ID in global state
+      // setChatHistory((prev) => [...prev, response.data]); // Add to chat history TODO
+    } catch (error) {
+      console.error("Failed to create new chat:", error);
+    }
+  };
 
   const fetchChatMessages = async (chatId: number) => {
     try {
@@ -140,7 +154,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       await axios({
         method: "post",
         url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/query`,
-        data: { query: content, chat_id: "1" },
+        data: { query: content, chat_id: chatId },
         responseType: "stream",
         headers: {
           Accept: "text/event-stream",
@@ -178,6 +192,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         setQuery,
         createNewMessages,
         fetchChatMessages,
+        createNewChat,
       }}
     >
       {children}
