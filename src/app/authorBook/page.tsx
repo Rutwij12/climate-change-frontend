@@ -101,7 +101,7 @@ export default function AuthorBook() {
       {/* Main Content (shifts when sidebar opens) */}
       <div
         className={`flex-1 transition-all duration-300 ${
-          sidebarOpen ? "ml-[200px]" : "ml-0"
+          sidebarOpen ? "ml-[250px]" : "ml-0"
         } p-8`}
       >
         <h1 className="text-3xl font-bold text-center mb-8 text-emerald-800">

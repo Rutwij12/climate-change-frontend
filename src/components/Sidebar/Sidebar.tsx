@@ -71,7 +71,7 @@ export default function Sidebar({
       {/* Sidebar Panel */}
       <div
         className={`fixed left-0 top-0 h-full bg-emerald-800 text-white overflow-hidden transition-all duration-300 ${
-          sidebarOpen ? "w-[200px]" : "w-0"
+          sidebarOpen ? "w-[250px]" : "w-0"
         }`}
       >
         <div className="p-4">

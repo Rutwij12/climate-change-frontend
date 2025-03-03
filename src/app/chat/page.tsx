@@ -48,7 +48,7 @@ export default function ChatWithResearch() {
       {/* Main Content */}
       <div
         className={`flex transition-all duration-300 w-full ${
-          sidebarOpen ? "ml-[200px]" : "ml-0"
+          sidebarOpen ? "ml-[250px]" : "ml-0"
         }`}
       >
         {/* Left Pane (Chat) */}
