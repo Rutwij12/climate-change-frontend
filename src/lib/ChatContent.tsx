@@ -86,17 +86,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         console.error("Failed to fetch chat history:", error);
       }
     };
-
+    createNewChat();
     fetchChatHistory();
   }, []);
 
   const createNewChat = async () => {
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/chat`);
-      const newChatId = response.data.id;
-
+      const newChatId: number = response.data.id;
       setChatId(newChatId); // Save new chat ID in global state
-      // setChatHistory((prev) => [...prev, response.data]); // Add to chat history TODO
     } catch (error) {
       console.error("Failed to create new chat:", error);
     }
@@ -126,7 +124,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           };
         }
       });
-
+      setChatId(chatId);
       setMessages(formattedMessages);
     } catch (error) {
       console.error("Failed to fetch chat messages:", error);
@@ -154,7 +152,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       await axios({
         method: "post",
         url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/query`,
-        data: { query: content, chat_id: chatId },
+        data: { query: content, chat_id: chatId?.toString() },
         responseType: "stream",
         headers: {
           Accept: "text/event-stream",
