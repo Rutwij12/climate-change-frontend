@@ -990,103 +990,116 @@ export default function GraphPage() {
       </div>
 
       {/* Graph Display - Updated layout */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <div className="flex-1 min-h-0">
-          {/* Dynamic graph */}
-          {activeTab === "dynamic" && dynamicNvlData && (
-            <InteractiveNvlWrapper
-              nodes={dynamicNvlData.nodes}
-              rels={dynamicNvlData.rels}
-              nvlOptions={{
-                initialZoom: 1,
-              }}
-              mouseEventCallbacks={{
-                onHover: (element, hitTargets, evt) =>
-                  console.log("onHover", element, hitTargets, evt),
-                onRelationshipRightClick: (rel, hitTargets, evt) =>
-                  console.log("onRelationshipRightClick", rel, hitTargets, evt),
-                onNodeClick: (node) => handleDynanmicGraphNodeClick(node),
-                onNodeRightClick: (node, hitTargets, evt) =>
-                  handleDynamicGraphNodeDoubleClick(node),
-                onNodeDoubleClick: (node) =>
-                  handleDynamicGraphNodeDoubleClick(node),
-                onRelationshipClick: (rel, hitTargets, evt) =>
-                  console.log("onRelationshipClick", rel, hitTargets, evt),
-                onRelationshipDoubleClick: (rel, hitTargets, evt) =>
-                  console.log(
-                    "onRelationshipDoubleClick",
-                    rel,
-                    hitTargets,
-                    evt
-                  ),
-                onCanvasClick: (evt) => console.log("onCanvasClick", evt),
-                onDrag: (nodes) => console.log("onDrag", nodes),
-                onPan: (evt) => console.log("onPan", evt),
-                onZoom: (zoomLevel) => console.log("onZoom", zoomLevel),
-              }}
-            />
-          )}
+      <div className="flex flex-1 min-h-0">
+        {/* Main graph area with info panel */}
+        <div className="flex flex-col flex-1">
+          <div className="flex-1 min-h-0">
+            {/* Dynamic graph */}
+            {activeTab === "dynamic" && dynamicNvlData && (
+              <InteractiveNvlWrapper
+                nodes={dynamicNvlData.nodes}
+                rels={dynamicNvlData.rels}
+                nvlOptions={{
+                  initialZoom: 1,
+                }}
+                mouseEventCallbacks={{
+                  onHover: (element, hitTargets, evt) =>
+                    console.log("onHover", element, hitTargets, evt),
+                  onRelationshipRightClick: (rel, hitTargets, evt) =>
+                    console.log(
+                      "onRelationshipRightClick",
+                      rel,
+                      hitTargets,
+                      evt
+                    ),
+                  onNodeClick: (node) => handleDynanmicGraphNodeClick(node),
+                  onNodeRightClick: (node, hitTargets, evt) =>
+                    handleDynamicGraphNodeDoubleClick(node),
+                  onNodeDoubleClick: (node) =>
+                    handleDynamicGraphNodeDoubleClick(node),
+                  onRelationshipClick: (rel, hitTargets, evt) =>
+                    console.log("onRelationshipClick", rel, hitTargets, evt),
+                  onRelationshipDoubleClick: (rel, hitTargets, evt) =>
+                    console.log(
+                      "onRelationshipDoubleClick",
+                      rel,
+                      hitTargets,
+                      evt
+                    ),
+                  onCanvasClick: (evt) => console.log("onCanvasClick", evt),
+                  onDrag: (nodes) => console.log("onDrag", nodes),
+                  onPan: (evt) => console.log("onPan", evt),
+                  onZoom: (zoomLevel) => console.log("onZoom", zoomLevel),
+                }}
+              />
+            )}
 
-          {/* Other NVL graphs */}
-          {activeTab !== "dynamic" && nvlData && (
-            <InteractiveNvlWrapper
-              nodes={nvlData.nodes}
-              rels={nvlData.rels}
-              nvlOptions={{
-                initialZoom: 1,
-              }}
-              mouseEventCallbacks={{
-                onHover: (element, hitTargets, evt) =>
-                  console.log("onHover", element, hitTargets, evt),
-                onRelationshipRightClick: (rel, hitTargets, evt) =>
-                  console.log("onRelationshipRightClick", rel, hitTargets, evt),
-                onNodeClick: (node) => handleRegularGraphNodeClick(node),
-                onNodeRightClick: (node, hitTargets, evt) =>
-                  console.log("onNodeRightClick", node, hitTargets, evt),
-                onNodeDoubleClick: (node, hitTargets, evt) =>
-                  console.log("onNodeDoubleClick", node, hitTargets, evt),
-                onRelationshipClick: (rel, hitTargets, evt) =>
-                  console.log("onRelationshipClick", rel, hitTargets, evt),
-                onRelationshipDoubleClick: (rel, hitTargets, evt) =>
-                  console.log(
-                    "onRelationshipDoubleClick",
-                    rel,
-                    hitTargets,
-                    evt
-                  ),
-                onDrag: (nodes) => console.log("onDrag", nodes),
-                onPan: (evt) => console.log("onPan", evt),
-                onZoom: (zoomLevel) => console.log("onZoom", zoomLevel),
-              }}
-            />
-          )}
+            {/* Other NVL graphs */}
+            {activeTab !== "dynamic" && nvlData && (
+              <InteractiveNvlWrapper
+                nodes={nvlData.nodes}
+                rels={nvlData.rels}
+                nvlOptions={{
+                  initialZoom: 1,
+                }}
+                mouseEventCallbacks={{
+                  onHover: (element, hitTargets, evt) =>
+                    console.log("onHover", element, hitTargets, evt),
+                  onRelationshipRightClick: (rel, hitTargets, evt) =>
+                    console.log(
+                      "onRelationshipRightClick",
+                      rel,
+                      hitTargets,
+                      evt
+                    ),
+                  onNodeClick: (node) => handleRegularGraphNodeClick(node),
+                  onNodeRightClick: (node, hitTargets, evt) =>
+                    console.log("onNodeRightClick", node, hitTargets, evt),
+                  onNodeDoubleClick: (node, hitTargets, evt) =>
+                    console.log("onNodeDoubleClick", node, hitTargets, evt),
+                  onRelationshipClick: (rel, hitTargets, evt) =>
+                    console.log("onRelationshipClick", rel, hitTargets, evt),
+                  onRelationshipDoubleClick: (rel, hitTargets, evt) =>
+                    console.log(
+                      "onRelationshipDoubleClick",
+                      rel,
+                      hitTargets,
+                      evt
+                    ),
+                  onDrag: (nodes) => console.log("onDrag", nodes),
+                  onPan: (evt) => console.log("onPan", evt),
+                  onZoom: (zoomLevel) => console.log("onZoom", zoomLevel),
+                }}
+              />
+            )}
+          </div>
+
+          {/* Info Panels */}
+          {activeTab === "dynamic"
+            ? // Dynamic graph author info panel
+              (selectedAuthorInfo || authorInfoLoading) && (
+                <div className="mt-4">
+                  <AuthorInfoPanel
+                    authorInfo={selectedAuthorInfo}
+                    loading={authorInfoLoading}
+                    onClose={() => setSelectedAuthorInfo(null)}
+                  />
+                </div>
+              )
+            : // Regular graph node info panel
+              (selectedNodeInfo || nodeInfoLoading) && (
+                <div className="mt-4" ref={nodeInfoPanelRef}>
+                  <NodeInfoPanel
+                    nodeInfo={selectedNodeInfo}
+                    loading={nodeInfoLoading}
+                    onClose={() => setSelectedNodeInfo(null)}
+                  />
+                </div>
+              )}
         </div>
 
         {/* Natural Language Sidebar */}
         {activeTab === "natural" && <NaturalLanguageSidebar />}
-
-        {/* Info Panels */}
-        {activeTab === "dynamic"
-          ? // Dynamic graph author info panel
-            (selectedAuthorInfo || authorInfoLoading) && (
-              <div className="mt-4">
-                <AuthorInfoPanel
-                  authorInfo={selectedAuthorInfo}
-                  loading={authorInfoLoading}
-                  onClose={() => setSelectedAuthorInfo(null)}
-                />
-              </div>
-            )
-          : // Regular graph node info panel
-            (selectedNodeInfo || nodeInfoLoading) && (
-              <div className="mt-4" ref={nodeInfoPanelRef}>
-                <NodeInfoPanel
-                  nodeInfo={selectedNodeInfo}
-                  loading={nodeInfoLoading}
-                  onClose={() => setSelectedNodeInfo(null)}
-                />
-              </div>
-            )}
       </div>
     </div>
   );
