@@ -30,6 +30,7 @@ import {
   Copy,
 } from "lucide-react";
 import "reactflow/dist/style.css";
+import { AuthorInfo, Connection} from "@/types";
 
 // Updated Node types and colors with green shades
 const NODE_TYPES = {
@@ -195,7 +196,7 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
   const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(normalizedNodes, normalizedEdges);
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
-  const [authorInfo, setAuthorInfo] = useState(null);
+  const [authorInfo, setAuthorInfo] = useState<AuthorInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { fitView, setCenter } = useReactFlow();
   const [fetchedCentral, setFetchedCentral] = useState(false);
@@ -214,7 +215,7 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
             );
             setAuthorInfo(response.data);
             if (response.data.name) {
-              setNodes((nds) =>
+              setNodes((nds: Node[]) =>
                 nds.map((n) =>
                   n.id === centralNode.id ? { ...n, data: { ...n.data, label: response.data.name } } : n
                 )
@@ -239,10 +240,10 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
     return () => clearTimeout(timer);
   }, [fitView]);
 
-  const clickTimeoutRef = useRef(null);
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Function to handle single click (fetch author info)
-  const handleSingleClick = useCallback(async (node) => {
+  const handleSingleClick = useCallback(async (node: Node) => {
     setIsLoading(true);
     try {
       const response = await axios.post(
@@ -259,16 +260,16 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
 
   // Function to handle double click (expand connections)
   const handleDoubleClick = useCallback(
-    async (event, node) => {
+    async (event: React.MouseEvent, node: Node) => {
       if (node.data.expanded) return;
       setIsLoading(true);
       try {
-        const response = await axios.post(
+        const response = await axios.post<{ connections: Connection[] }>(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`,
           { authorid: node.id }
         );
         const connections = response.data.connections;
-        const existingNodeIds = new Set(nodes.map((n) => n.id));
+        const existingNodeIds = new Set(nodes.map((n: Node) => n.id));
         const uniqueConnections = connections.filter((conn) => !existingNodeIds.has(conn.authorId));
         if (uniqueConnections.length === 0) {
           console.log("No new connections found");
@@ -325,7 +326,7 @@ function Flow({ initialGraphData }: DynamicGraphProps) {
 
   // Single click handler to decide between single and double click
   const onNodeClick = useCallback(
-    (event, node) => {
+    (event: React.MouseEvent, node: Node) => {
       event.preventDefault();
       if (clickTimeoutRef.current) {
         clearTimeout(clickTimeoutRef.current);
