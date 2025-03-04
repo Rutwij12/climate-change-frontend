@@ -5,7 +5,7 @@ import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import type { Node as NVLNode, Relationship } from "@neo4j-nvl/base";
-type TabType = "default" | "coauthor" | "topic" | "research" | "natural";
+type TabType = "coauthor" | "topic" | "research" | "natural" | "dynamic";
 type NodeType = "author" | "work" | "institution" | "topic";
 
 const NODE_COLORS: Record<NodeType, string> = {
@@ -56,18 +56,23 @@ export default function GraphPage() {
   const paperid = searchParams.get("paperid") || "";
 
   const [loading, setLoading] = useState<boolean>(true);
+  const [initialConnectionsLoading, setInitialConnectionsLoading] =
+    useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>("default");
+  const [activeTab, setActiveTab] = useState<TabType>("coauthor");
   const [nvlData, setNvlData] = useState<{
     nodes: NVLNode[];
     rels: Relationship[];
   } | null>(null);
-  const [defaultNvlData, setDefaultNvlData] = useState<{
+  const [dynamicNvlData, setDynamicNvlData] = useState<{
     nodes: NVLNode[];
     rels: Relationship[];
   } | null>(null);
   const [queryInput, setQueryInput] = useState<string>("");
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // Add a ref to track initial render
+  const isInitialRender = React.useRef(true);
 
   // Convert initial connections to NVL format
   const convertInitialConnectionsToNvl = (
@@ -129,8 +134,8 @@ export default function GraphPage() {
 
   // Add useEffect to update central node info
   useEffect(() => {
-    if (defaultNvlData && defaultNvlData.nodes.length > 0) {
-      const centralNode: any = defaultNvlData.nodes[0];
+    if (dynamicNvlData && dynamicNvlData.nodes.length > 0) {
+      const centralNode: any = dynamicNvlData.nodes[0];
       if (centralNode.label === "Loading...") {
         (async () => {
           try {
@@ -140,7 +145,7 @@ export default function GraphPage() {
             );
             const authorInfo = response.data;
 
-            setDefaultNvlData((prev: any) => ({
+            setDynamicNvlData((prev: any) => ({
               nodes: [
                 {
                   ...prev.nodes[0],
@@ -171,10 +176,10 @@ export default function GraphPage() {
         })();
       }
     }
-  }, [defaultNvlData]);
+  }, [dynamicNvlData]);
 
   // Add function to handle node expansion
-  const handleDefaultGraphNodeClick = async (node: NVLNode) => {
+  const handleDynamicGraphNodeClick = async (node: NVLNode) => {
     try {
       setLoading(true);
       const response = await axios.post<{ connections: InitialConnection[] }>(
@@ -192,17 +197,17 @@ export default function GraphPage() {
       );
 
       // Add only new nodes and relationships
-      if (defaultNvlData) {
-        const existingNodeIds = new Set(defaultNvlData.nodes.map((n) => n.id));
+      if (dynamicNvlData) {
+        const existingNodeIds = new Set(dynamicNvlData.nodes.map((n) => n.id));
         const newNodes = newData.nodes.filter(
           (n) => !existingNodeIds.has(n.id)
         );
 
         // Check relationships in both directions
         const existingRelSet = new Set(
-          defaultNvlData.rels
+          dynamicNvlData.rels
             .map((r) => `${r.from}-${r.to}`)
-            .concat(defaultNvlData.rels.map((r) => `${r.to}-${r.from}`))
+            .concat(dynamicNvlData.rels.map((r) => `${r.to}-${r.from}`))
         );
 
         const newRels = newData.rels.filter(
@@ -211,15 +216,15 @@ export default function GraphPage() {
             !existingRelSet.has(`${r.to}-${r.from}`)
         );
 
-        setDefaultNvlData({
+        setDynamicNvlData({
           nodes: [
-            ...defaultNvlData.nodes.map((n) => ({
+            ...dynamicNvlData.nodes.map((n) => ({
               ...n,
               size: n.id === node.id ? 60 : 40, // Make clicked node big, others small
             })),
             ...newNodes,
           ],
-          rels: [...defaultNvlData.rels, ...newRels],
+          rels: [...dynamicNvlData.rels, ...newRels],
         });
       }
     } catch (error) {
@@ -233,6 +238,10 @@ export default function GraphPage() {
   useEffect(() => {
     async function fetchData() {
       try {
+        // First fetch the regular NVL data
+        await fetchNvlData("coauthor_network");
+
+        setInitialConnectionsLoading(true);
         const response = await axios.post<{ connections: InitialConnection[] }>(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_initial_connections`,
           { authorid, paperid }
@@ -242,7 +251,7 @@ export default function GraphPage() {
           authorid,
           response.data.connections
         );
-        setDefaultNvlData(nvlData);
+        setDynamicNvlData(nvlData);
       } catch (error) {
         console.error("Error fetching initial graph data:", error);
         if (error instanceof Error) {
@@ -252,6 +261,7 @@ export default function GraphPage() {
         }
       } finally {
         setLoading(false);
+        setInitialConnectionsLoading(false);
       }
     }
 
@@ -260,6 +270,7 @@ export default function GraphPage() {
     } else {
       setError("Missing authorid in query parameters.");
       setLoading(false);
+      setInitialConnectionsLoading(false);
     }
   }, [authorid, paperid]);
 
@@ -386,6 +397,12 @@ export default function GraphPage() {
   useEffect(() => {
     if (!authorid) return;
 
+    // Skip the first render
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+
     switch (activeTab) {
       case "coauthor":
         fetchNvlData("coauthor_network");
@@ -424,7 +441,7 @@ export default function GraphPage() {
     </div>
   );
 
-  if (loading)
+  if (loading || (activeTab === "dynamic" && initialConnectionsLoading))
     return (
       <div className="flex items-center justify-center min-h-screen">
         <svg
@@ -451,9 +468,9 @@ export default function GraphPage() {
     );
 
   if (error) return <div>Error: {error}</div>;
-  if (activeTab === "default" && !defaultNvlData)
+  if (activeTab === "dynamic" && !dynamicNvlData)
     return <div>No graph data available.</div>;
-  if (activeTab !== "default" && !nvlData)
+  if (activeTab !== "dynamic" && !nvlData)
     return <div>No graph data available.</div>;
 
   return (
@@ -464,11 +481,11 @@ export default function GraphPage() {
       <div className="mb-4 border-b border-gray-200">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
           {[
-            { id: "default", name: "Default View" },
             { id: "coauthor", name: "Co-author Network" },
             { id: "topic", name: "Topic Network" },
             { id: "research", name: "Research Topics" },
             { id: "natural", name: "Natural Language" },
+            { id: "dynamic", name: "Dynamic Graph" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -491,11 +508,11 @@ export default function GraphPage() {
       {/* Graph Display - Fixed layout */}
       <div className="flex h-[800px] w-full">
         <div className="flex-1">
-          {/* Show default graph with click handling */}
-          {activeTab === "default" && defaultNvlData && (
+          {/* Show dynamic graph */}
+          {activeTab === "dynamic" && dynamicNvlData && (
             <InteractiveNvlWrapper
-              nodes={defaultNvlData.nodes}
-              rels={defaultNvlData.rels}
+              nodes={dynamicNvlData.nodes}
+              rels={dynamicNvlData.rels}
               nvlOptions={{
                 initialZoom: 1,
               }}
@@ -507,8 +524,8 @@ export default function GraphPage() {
                 onNodeClick: (node, hitTargets, evt) =>
                   console.log("onNodeClick", node, hitTargets, evt),
                 onNodeRightClick: (node, hitTargets, evt) =>
-                  handleDefaultGraphNodeClick(node),
-                onNodeDoubleClick: (node) => handleDefaultGraphNodeClick(node),
+                  handleDynamicGraphNodeClick(node),
+                onNodeDoubleClick: (node) => handleDynamicGraphNodeClick(node),
                 onRelationshipClick: (rel, hitTargets, evt) =>
                   console.log("onRelationshipClick", rel, hitTargets, evt),
                 onRelationshipDoubleClick: (rel, hitTargets, evt) =>
@@ -526,8 +543,8 @@ export default function GraphPage() {
             />
           )}
 
-          {/* Show other NVL graphs without click handling */}
-          {activeTab !== "default" && nvlData && (
+          {/* Show other NVL graphs */}
+          {activeTab !== "dynamic" && nvlData && (
             <InteractiveNvlWrapper
               nodes={nvlData.nodes}
               rels={nvlData.rels}
