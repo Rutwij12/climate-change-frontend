@@ -20,7 +20,7 @@ interface ApiResponse {
   precomputations: Record<string, unknown>;
 }
 
-type TabType = "default" | "coauthor" | "topic" | "research";
+type TabType = "default" | "coauthor" | "topic" | "research" | "natural";
 
 // Define valid node types
 type NodeType = "author" | "work" | "institution" | "topic";
@@ -71,6 +71,8 @@ export default function GraphPage() {
     nodes: NVLNode[];
     rels: Relationship[];
   } | null>(null);
+  const [queryInput, setQueryInput] = useState<string>("");
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -153,7 +155,12 @@ export default function GraphPage() {
       const nvlNodes: NVLNode[] = response.data.graph.nodes.map(
         (node: any) => ({
           id: node.id.toString(),
-          size: node.labels.includes("Author") ? 40 : 30,
+          size:
+            node.properties.id.toString() === authorid
+              ? 60
+              : node.labels.includes("Author")
+              ? 40
+              : 30,
           label: node.properties.name || node.properties.title || node.id,
           caption: node.properties.name || node.properties.title || node.id,
           type: node.labels[0].toLowerCase(),
@@ -194,6 +201,65 @@ export default function GraphPage() {
     }
   };
 
+  const handleNaturalLanguageQuery = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/natural_language_query`,
+        {
+          author_id: authorid,
+          query: queryInput,
+          limit: 50,
+        }
+      );
+
+      const nvlNodes: NVLNode[] = response.data.graph.nodes.map(
+        (node: any) => ({
+          id: node.id.toString(),
+          size:
+            node.id.toString() === authorid
+              ? 60
+              : node.labels.includes("Author")
+              ? 40
+              : 30,
+          label: node.properties.name || node.properties.title || node.id,
+          caption: node.properties.name || node.properties.title || node.id,
+          type: node.labels[0].toLowerCase(),
+          color: getNodeColor(node.labels),
+          properties: {
+            ...node.properties,
+            nodeType: node.labels[0],
+          },
+        })
+      );
+
+      const nvlRels: Relationship[] = response.data.graph.relationships.map(
+        (rel: any) => ({
+          id: rel.id.toString(),
+          from: rel.start_node.toString(),
+          to: rel.end_node.toString(),
+          type: rel.type.toLowerCase(),
+          caption: getRelationshipLabel(rel.type, rel.properties),
+          label: getRelationshipLabel(rel.type, rel.properties),
+          properties: {
+            ...rel.properties,
+            relationType: rel.type,
+          },
+        })
+      );
+
+      setNvlData({ nodes: nvlNodes, rels: nvlRels });
+      setError(null);
+    } catch (error) {
+      console.error("Error executing natural language query:", error);
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!authorid) return;
 
@@ -207,8 +273,33 @@ export default function GraphPage() {
       case "research":
         fetchNvlData("author_topics");
         break;
+      case "natural":
+        // Don't fetch automatically for natural language tab
+        break;
     }
   }, [activeTab, authorid]);
+
+  // Add this JSX component for the natural language sidebar
+  const NaturalLanguageSidebar = () => (
+    <div className="w-64 bg-white p-4 border-l border-gray-200">
+      <h3 className="text-lg font-semibold mb-4">Natural Language Query</h3>
+      <textarea
+        ref={textareaRef}
+        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+        rows={4}
+        value={queryInput}
+        onChange={(e) => setQueryInput(e.target.value)}
+        placeholder="Enter your query here... (e.g., 'Show me this author's coauthors who work on machine learning')"
+      />
+      <button
+        onClick={handleNaturalLanguageQuery}
+        className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+        disabled={loading || !queryInput.trim()}
+      >
+        {loading ? "Loading..." : "Submit Query"}
+      </button>
+    </div>
+  );
 
   if (loading)
     return (
@@ -251,6 +342,7 @@ export default function GraphPage() {
             { id: "coauthor", name: "Co-author Network" },
             { id: "topic", name: "Topic Network" },
             { id: "research", name: "Research Topics" },
+            { id: "natural", name: "Natural Language" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -270,45 +362,57 @@ export default function GraphPage() {
         </nav>
       </div>
 
-      {/* Graph Display */}
-      <div className="h-[800px] w-full">
-        {activeTab === "default" && graphData && (
-          <DynamicGraph initialGraphData={graphData} />
-        )}
+      {/* Graph Display - Fixed layout */}
+      <div className="flex h-[800px] w-full">
+        <div className="flex-1">
+          {/* Show default graph only on default tab */}
+          {activeTab === "default" && graphData && (
+            <DynamicGraph initialGraphData={graphData} />
+          )}
 
-        {activeTab !== "default" && nvlData && (
-          <InteractiveNvlWrapper
-            nodes={nvlData.nodes}
-            rels={nvlData.rels}
-            nvlOptions={{
-              initialZoom: 1,
-            }}
-            mouseEventCallbacks={{
-              onHover: (element, hitTargets, evt) =>
-                console.log("onHover", element, hitTargets, evt),
-              onRelationshipRightClick: (rel, hitTargets, evt) =>
-                console.log("onRelationshipRightClick", rel, hitTargets, evt),
-              onNodeClick: (node, hitTargets, evt) =>
-                console.log("onNodeClick", node, hitTargets, evt),
-              onNodeRightClick: (node, hitTargets, evt) =>
-                console.log("onNodeRightClick", node, hitTargets, evt),
-              onNodeDoubleClick: (node, hitTargets, evt) =>
-                console.log("onNodeDoubleClick", node, hitTargets, evt),
-              onRelationshipClick: (rel, hitTargets, evt) =>
-                console.log("onRelationshipClick", rel, hitTargets, evt),
-              onRelationshipDoubleClick: (rel, hitTargets, evt) =>
-                console.log("onRelationshipDoubleClick", rel, hitTargets, evt),
-              onCanvasClick: (evt) => console.log("onCanvasClick", evt),
-              onCanvasDoubleClick: (evt) =>
-                console.log("onCanvasDoubleClick", evt),
-              onCanvasRightClick: (evt) =>
-                console.log("onCanvasRightClick", evt),
-              onDrag: (nodes) => console.log("onDrag", nodes),
-              onPan: (evt) => console.log("onPan", evt),
-              onZoom: (zoomLevel) => console.log("onZoom", zoomLevel),
-            }}
-          />
-        )}
+          {/* Show NVL graph for all non-default tabs when nvlData is available */}
+          {activeTab !== "default" && nvlData && (
+            <InteractiveNvlWrapper
+              nodes={nvlData.nodes}
+              rels={nvlData.rels}
+              nvlOptions={{
+                initialZoom: 1,
+              }}
+              mouseEventCallbacks={{
+                onHover: (element, hitTargets, evt) =>
+                  console.log("onHover", element, hitTargets, evt),
+                onRelationshipRightClick: (rel, hitTargets, evt) =>
+                  console.log("onRelationshipRightClick", rel, hitTargets, evt),
+                onNodeClick: (node, hitTargets, evt) =>
+                  console.log("onNodeClick", node, hitTargets, evt),
+                onNodeRightClick: (node, hitTargets, evt) =>
+                  console.log("onNodeRightClick", node, hitTargets, evt),
+                onNodeDoubleClick: (node, hitTargets, evt) =>
+                  console.log("onNodeDoubleClick", node, hitTargets, evt),
+                onRelationshipClick: (rel, hitTargets, evt) =>
+                  console.log("onRelationshipClick", rel, hitTargets, evt),
+                onRelationshipDoubleClick: (rel, hitTargets, evt) =>
+                  console.log(
+                    "onRelationshipDoubleClick",
+                    rel,
+                    hitTargets,
+                    evt
+                  ),
+                onCanvasClick: (evt) => console.log("onCanvasClick", evt),
+                onCanvasDoubleClick: (evt) =>
+                  console.log("onCanvasDoubleClick", evt),
+                onCanvasRightClick: (evt) =>
+                  console.log("onCanvasRightClick", evt),
+                onDrag: (nodes) => console.log("onDrag", nodes),
+                onPan: (evt) => console.log("onPan", evt),
+                onZoom: (zoomLevel) => console.log("onZoom", zoomLevel),
+              }}
+            />
+          )}
+        </div>
+
+        {/* Natural Language Sidebar */}
+        {activeTab === "natural" && <NaturalLanguageSidebar />}
       </div>
     </div>
   );
