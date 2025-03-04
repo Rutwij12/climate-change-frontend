@@ -4,7 +4,13 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import DynamicGraph from "@/components/DynamicGraph";
+import { InteractiveNvlWrapper } from "@neo4j-nvl/react";
 import type { Node, Edge } from "reactflow";
+import type {
+  Node as NVLNode,
+  Relationship,
+  HitTargets,
+} from "@neo4j-nvl/base";
 
 interface ApiResponse {
   connections: {
@@ -14,14 +20,57 @@ interface ApiResponse {
   precomputations: Record<string, unknown>;
 }
 
+type TabType = "default" | "coauthor" | "topic" | "research";
+
+// Define valid node types
+type NodeType = "author" | "work" | "institution" | "topic";
+
+const NODE_COLORS: Record<NodeType, string> = {
+  author: "#FFA726",
+  work: "#66BB6A",
+  institution: "#42A5F5",
+  topic: "#EC407A",
+};
+
+// Helper function to get node color based on label
+const getNodeColor = (labels: string[]): string => {
+  if (!labels || labels.length === 0) return "#999";
+  const nodeType = labels[0].toLowerCase() as NodeType;
+  return NODE_COLORS[nodeType] || "#999";
+};
+
+// Define a helper function to get relationship label
+const getRelationshipLabel = (type: string, properties: any) => {
+  switch (type.toLowerCase()) {
+    case "authored":
+      return `AUTHORED (${properties.authorPosition || ""})`;
+    case "mentions":
+      return `MENTIONS (${properties.score || ""})`;
+    case "researches":
+      return `RESEARCHES (${properties.paperCount || ""} papers)`;
+    case "affiliated_with":
+      return "AFFILIATED_WITH";
+    default:
+      return type;
+  }
+};
+
 export default function GraphPage() {
   const searchParams = useSearchParams();
   const authorid = searchParams.get("authorid") || "";
   const paperid = searchParams.get("paperid") || "";
 
-  const [graphData, setGraphData] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null);
+  const [graphData, setGraphData] = useState<{
+    nodes: Node[];
+    edges: Edge[];
+  } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>("default");
+  const [nvlData, setNvlData] = useState<{
+    nodes: NVLNode[];
+    rels: Relationship[];
+  } | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -41,16 +90,21 @@ export default function GraphPage() {
         };
 
         // Deduplicate connections by authorId.
-        const connectionMap = new Map<string, { authorId: string; name: string }>();
+        const connectionMap = new Map<
+          string,
+          { authorId: string; name: string }
+        >();
         data.connections.forEach((conn) => {
           connectionMap.set(conn.authorId, conn);
         });
-        const connectionNodes: Node[] = Array.from(connectionMap.values()).map((conn) => ({
-          id: conn.authorId,
-          type: "circle",
-          position: { x: 0, y: 0 },
-          data: { label: conn.name, expanded: false },
-        }));
+        const connectionNodes: Node[] = Array.from(connectionMap.values()).map(
+          (conn) => ({
+            id: conn.authorId,
+            type: "circle",
+            position: { x: 0, y: 0 },
+            data: { label: conn.name, expanded: false },
+          })
+        );
 
         // Create an edge from the central node to each connection node.
         const connectionEdges: Edge[] = connectionNodes.map((node) => ({
@@ -84,6 +138,78 @@ export default function GraphPage() {
     }
   }, [authorid, paperid]);
 
+  const fetchNvlData = async (endpoint: string) => {
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/${endpoint}`,
+        {
+          author_id: authorid,
+          limit: 50,
+        }
+      );
+
+      // Transform Neo4j graph data to NVL format
+      const nvlNodes: NVLNode[] = response.data.graph.nodes.map(
+        (node: any) => ({
+          id: node.id.toString(),
+          size: node.labels.includes("Author") ? 40 : 30,
+          label: node.properties.name || node.properties.title || node.id,
+          caption: node.properties.name || node.properties.title || node.id,
+          type: node.labels[0].toLowerCase(),
+          color: getNodeColor(node.labels),
+          properties: {
+            ...node.properties,
+            nodeType: node.labels[0],
+          },
+        })
+      );
+      console.log("nvlNodes", nvlNodes);
+
+      const nvlRels: Relationship[] = response.data.graph.relationships.map(
+        (rel: any) => ({
+          id: rel.id.toString(),
+          from: rel.start_node.toString(),
+          to: rel.end_node.toString(),
+          type: rel.type.toLowerCase(),
+          caption: getRelationshipLabel(rel.type, rel.properties),
+          label: getRelationshipLabel(rel.type, rel.properties),
+          properties: {
+            ...rel.properties,
+            relationType: rel.type,
+          },
+        })
+      );
+      console.log("nvlRels", nvlRels);
+
+      setNvlData({ nodes: nvlNodes, rels: nvlRels });
+      setError(null);
+    } catch (error) {
+      console.error(`Error fetching ${endpoint} data:`, error);
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!authorid) return;
+
+    switch (activeTab) {
+      case "coauthor":
+        fetchNvlData("coauthor_network");
+        break;
+      case "topic":
+        fetchNvlData("topic_network");
+        break;
+      case "research":
+        fetchNvlData("author_topics");
+        break;
+    }
+  }, [activeTab, authorid]);
+
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -109,14 +235,81 @@ export default function GraphPage() {
         </svg>
       </div>
     );
-  
+
   if (error) return <div>Error: {error}</div>;
   if (!graphData) return <div>No graph data available.</div>;
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Graph Data</h1>
-      <DynamicGraph initialGraphData={graphData} />
+
+      {/* Tabs */}
+      <div className="mb-4 border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          {[
+            { id: "default", name: "Default View" },
+            { id: "coauthor", name: "Co-author Network" },
+            { id: "topic", name: "Topic Network" },
+            { id: "research", name: "Research Topics" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as TabType)}
+              className={`
+                py-2 px-1 border-b-2 font-medium text-sm
+                ${
+                  activeTab === tab.id
+                    ? "border-green-500 text-green-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }
+              `}
+            >
+              {tab.name}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Graph Display */}
+      <div className="h-[800px] w-full">
+        {activeTab === "default" && graphData && (
+          <DynamicGraph initialGraphData={graphData} />
+        )}
+
+        {activeTab !== "default" && nvlData && (
+          <InteractiveNvlWrapper
+            nodes={nvlData.nodes}
+            rels={nvlData.rels}
+            nvlOptions={{
+              initialZoom: 1,
+            }}
+            mouseEventCallbacks={{
+              onHover: (element, hitTargets, evt) =>
+                console.log("onHover", element, hitTargets, evt),
+              onRelationshipRightClick: (rel, hitTargets, evt) =>
+                console.log("onRelationshipRightClick", rel, hitTargets, evt),
+              onNodeClick: (node, hitTargets, evt) =>
+                console.log("onNodeClick", node, hitTargets, evt),
+              onNodeRightClick: (node, hitTargets, evt) =>
+                console.log("onNodeRightClick", node, hitTargets, evt),
+              onNodeDoubleClick: (node, hitTargets, evt) =>
+                console.log("onNodeDoubleClick", node, hitTargets, evt),
+              onRelationshipClick: (rel, hitTargets, evt) =>
+                console.log("onRelationshipClick", rel, hitTargets, evt),
+              onRelationshipDoubleClick: (rel, hitTargets, evt) =>
+                console.log("onRelationshipDoubleClick", rel, hitTargets, evt),
+              onCanvasClick: (evt) => console.log("onCanvasClick", evt),
+              onCanvasDoubleClick: (evt) =>
+                console.log("onCanvasDoubleClick", evt),
+              onCanvasRightClick: (evt) =>
+                console.log("onCanvasRightClick", evt),
+              onDrag: (nodes) => console.log("onDrag", nodes),
+              onPan: (evt) => console.log("onPan", evt),
+              onZoom: (zoomLevel) => console.log("onZoom", zoomLevel),
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
