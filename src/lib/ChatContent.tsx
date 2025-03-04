@@ -95,6 +95,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const createNewChat = async () => {
     try {
       const user_email = localStorage.getItem("user_email") ?? "unknown";
+      console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
+      console.log(user_email);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/chat`, {
         user_email: user_email
       });
