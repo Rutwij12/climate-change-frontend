@@ -9,12 +9,12 @@ import { Author } from "@/types";
 import { useRouter } from "next/navigation";
 
 interface AuthorCardProps {
-  author: Author
-  isAdded: boolean
-  isRemoved: boolean
-  addAuthor: (authorName: string) => Promise<void>
-  removeAuthor: (authorName: string) => Promise<void>
-  paperId: string; 
+  author: Author;
+  isAdded: boolean;
+  isRemoved: boolean;
+  addAuthor: (authorName: string) => Promise<void>;
+  removeAuthor: (authorName: string) => Promise<void>;
+  paperId: string;
 }
 
 export default function AuthorCard({
@@ -33,17 +33,23 @@ export default function AuthorCard({
   const handleAddAuthor = async () => {
     setIsAdding(true);
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors`, {
-        name: author.name,
-        institution: author.organisation_history?.[0] ?? "Unknown",
-        note: author.grants?.join(", ") ?? null,
-        openalex_id: author.openAlexid || "",
-      });
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors`,
+        {
+          name: author.name,
+          institution: author.organisation_history?.[0] ?? "Unknown",
+          note: author.grants?.join(", ") ?? null,
+          openalex_id: author.openAlexid || "",
+        }
+      );
       addAuthor(author.name);
     } catch (error) {
       // Deal with the case when author already exists in the book
       if (axios.isAxiosError(error)) {
-        console.error("Error adding author:", error.response?.data || error.message);
+        console.error(
+          "Error adding author:",
+          error.response?.data || error.message
+        );
       } else {
         console.error("Unexpected error:", error);
       }
@@ -82,13 +88,14 @@ export default function AuthorCard({
         </p>
 
         <p className="text-sm text-green-600">
-          Organisation History: {author.organisation_history?.join(", ") || "Unknown"}
+          Organisation History: {author.organisation_history || "Unknown"}
         </p>
 
         <p className="text-sm text-green-600">
-          Grants: {author.grants?.map(grant => grant.funder).join(", ") || "None"}
+          Grants:{" "}
+          {author.grants?.map((grant) => grant.funder).join(", ") || "None"}
         </p>
-        
+
         {author.website ? (
           <a
             href={author.website}

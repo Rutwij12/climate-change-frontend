@@ -10,31 +10,104 @@ interface ResearchPapersListProps {
   onClose: () => void;
 }
 
-export default function ResearchPapersList({ challenge, onClose }: ResearchPapersListProps) {
+export default function ResearchPapersList({
+  challenge,
+  onClose,
+}: ResearchPapersListProps) {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchPapers = async () => {
       setLoading(true);
       setPapers([]);
 
       try {
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/papers/search`, {
-          query: challenge.name,
-          top_k: 2,
-        });
-      
-        setPapers(response.data);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/papers/search`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              query: challenge.name,
+              top_k: 3,
+            }),
+            signal: controller.signal,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch papers");
+        }
+
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error("No response body");
+        }
+
+        // Read the stream
+        while (true) {
+          const { done, value } = await reader.read();
+          console.log("done", done);
+          if (done) break;
+
+          // Convert the chunk to text
+          const chunk = new TextDecoder().decode(value);
+          console.log("chunk", chunk);
+          // Split by double newlines to get individual SSE messages
+          const messages = chunk.split("\n\n");
+          for (const message of messages) {
+            if (!message.trim()) continue;
+
+            // Remove "data: " prefix and parse JSON
+            const data = JSON.parse(message.replace(/^data: /, ""));
+            console.log("data", data);
+            if (data.type === "initial") {
+              setPapers(data.papers);
+              setLoading(false);
+            } else if (data.type === "author_details") {
+              setPapers((currentPapers) =>
+                currentPapers.map((paper) => ({
+                  ...paper,
+                  authors: paper.authors.map((author) => {
+                    const authorUpdates = data.updates[author.openAlexid];
+                    if (authorUpdates) {
+                      return {
+                        ...author,
+                        dob: authorUpdates.dob,
+                        grants: authorUpdates.grants,
+                        grant_org_name: authorUpdates.grant_org_name,
+                        website: authorUpdates.website,
+                      };
+                    }
+                    return author;
+                  }),
+                }))
+              );
+            }
+          }
+        }
       } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") {
+          // Handle abort error silently
+          return;
+        }
         setError((err as Error).message);
-      } finally {
         setLoading(false);
       }
     };
 
     fetchPapers();
+
+    // Cleanup function to abort fetch if component unmounts
+    return () => {
+      controller.abort();
+    };
   }, [challenge]);
 
   return (
@@ -54,7 +127,9 @@ export default function ResearchPapersList({ challenge, onClose }: ResearchPaper
       <div className="p-4">
         {loading ? (
           <div className="flex flex-col items-center">
-            <p className="text-2xl font-bold text-gray-700 mb-4">Loading papers...</p>
+            <p className="text-2xl font-bold text-gray-700 mb-4">
+              Loading papers...
+            </p>
             <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : error ? (
@@ -62,7 +137,9 @@ export default function ResearchPapersList({ challenge, onClose }: ResearchPaper
         ) : papers.length === 0 ? (
           <p className="text-center mt-4">No research papers found.</p>
         ) : (
-          papers.map((paper) => <PaperCard key={paper.paper_id} paper={paper} />)
+          papers.map((paper) => (
+            <PaperCard key={paper.paper_id} paper={paper} />
+          ))
         )}
       </div>
     </div>
