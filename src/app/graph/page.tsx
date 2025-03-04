@@ -484,14 +484,52 @@ export default function GraphPage() {
             { id: "coauthor", name: "Co-author Network" },
             { id: "topic", name: "Topic Network" },
             { id: "research", name: "Research Topics" },
-            { id: "natural", name: "Natural Language" },
-            { id: "dynamic", name: "Dynamic Graph" },
+            {
+              id: "dynamic",
+              name: "Dynamic Graph",
+              icon: (
+                <svg
+                  className="w-4 h-4 mr-2 inline-block"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              ),
+            },
+            {
+              id: "natural",
+              name: "AI Assistant",
+              icon: (
+                <svg
+                  className="w-4 h-4 mr-2 inline-block"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                  />
+                </svg>
+              ),
+            },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
               className={`
-                py-2 px-1 border-b-2 font-medium text-sm
+                py-2 px-1 border-b-2 font-medium text-sm flex items-center
                 ${
                   activeTab === tab.id
                     ? "border-green-500 text-green-600"
@@ -499,6 +537,7 @@ export default function GraphPage() {
                 }
               `}
             >
+              {tab.icon && tab.icon}
               {tab.name}
             </button>
           ))}
