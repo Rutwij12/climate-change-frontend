@@ -1,6 +1,7 @@
 "use client";
+export const dynamic = "force-dynamic";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import DynamicGraph from "@/components/DynamicGraph";
@@ -14,7 +15,8 @@ interface ApiResponse {
   precomputations: Record<string, unknown>;
 }
 
-export default function GraphPage() {
+function GraphPageContent() {
+  // useSearchParams must be used in a client component that's wrapped in Suspense.
   const searchParams = useSearchParams();
   const authorid = searchParams.get("authorid") || "";
   const paperid = searchParams.get("paperid") || "";
@@ -109,7 +111,7 @@ export default function GraphPage() {
         </svg>
       </div>
     );
-  
+
   if (error) return <div>Error: {error}</div>;
   if (!graphData) return <div>No graph data available.</div>;
 
@@ -118,5 +120,19 @@ export default function GraphPage() {
       <h1 className="text-2xl font-bold mb-4">Graph Data</h1>
       <DynamicGraph initialGraphData={graphData} />
     </div>
+  );
+}
+
+export default function GraphPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          Loading Graph...
+        </div>
+      }
+    >
+      <GraphPageContent />
+    </Suspense>
   );
 }
