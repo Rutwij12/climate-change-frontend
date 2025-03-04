@@ -76,6 +76,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
   // Fetch chat history (Mock API call or replace with real API call)
   useEffect(() => {
+    const userEmail = localStorage.getItem("user_email");
+    if (!userEmail) {
+      console.warn("User not authenticated, skipping chat initialization.");
+      return; // Exit early if no user is logged in
+    }
+
     const fetchChatHistory = async () => {
       try {
         const response = await axios.get<ChatHistory[]>(
@@ -95,8 +101,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const createNewChat = async () => {
     try {
       const user_email = localStorage.getItem("user_email") ?? "unknown";
-      console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
-      console.log(user_email);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/chat`, {
         user_email: user_email
       });
