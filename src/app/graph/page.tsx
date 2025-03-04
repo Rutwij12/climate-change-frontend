@@ -67,6 +67,42 @@ type NodeInfo = {
   data: any;
 };
 
+// Move NaturalLanguageSidebar outside of the main GraphPage component
+const NaturalLanguageSidebar = ({
+  queryInput,
+  setQueryInput,
+  loading,
+  handleNaturalLanguageQuery,
+}: {
+  queryInput: string;
+  setQueryInput: (value: string) => void;
+  loading: boolean;
+  handleNaturalLanguageQuery: () => void;
+}) => {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  return (
+    <div className="w-64 bg-white p-4 border-l border-gray-200">
+      <h3 className="text-lg font-semibold mb-4">Natural Language Query</h3>
+      <textarea
+        ref={textareaRef}
+        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+        rows={4}
+        value={queryInput}
+        onChange={(e) => setQueryInput(e.target.value)}
+        placeholder="Enter your query here... (e.g., 'Show me this author's coauthors who work on machine learning')"
+      />
+      <button
+        onClick={handleNaturalLanguageQuery}
+        className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+        disabled={loading || !queryInput.trim()}
+      >
+        {loading ? "Loading..." : "Submit Query"}
+      </button>
+    </div>
+  );
+};
+
 export default function GraphPage() {
   const searchParams = useSearchParams();
   const authorid = searchParams.get("authorid") || "";
@@ -486,28 +522,6 @@ export default function GraphPage() {
         break;
     }
   }, [activeTab, authorid]);
-
-  // Add this JSX component for the natural language sidebar
-  const NaturalLanguageSidebar = () => (
-    <div className="w-64 bg-white p-4 border-l border-gray-200">
-      <h3 className="text-lg font-semibold mb-4">Natural Language Query</h3>
-      <textarea
-        ref={textareaRef}
-        className="w-full p-2 border border-gray-300 rounded-md mb-4"
-        rows={4}
-        value={queryInput}
-        onChange={(e) => setQueryInput(e.target.value)}
-        placeholder="Enter your query here... (e.g., 'Show me this author's coauthors who work on machine learning')"
-      />
-      <button
-        onClick={handleNaturalLanguageQuery}
-        className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
-        disabled={loading || !queryInput.trim()}
-      >
-        {loading ? "Loading..." : "Submit Query"}
-      </button>
-    </div>
-  );
 
   // Add function to handle node click and fetch author info
   const handleDynanmicGraphNodeClick = async (node: any) => {
@@ -1099,7 +1113,14 @@ export default function GraphPage() {
         </div>
 
         {/* Natural Language Sidebar */}
-        {activeTab === "natural" && <NaturalLanguageSidebar />}
+        {activeTab === "natural" && (
+          <NaturalLanguageSidebar
+            queryInput={queryInput}
+            setQueryInput={setQueryInput}
+            loading={loading}
+            handleNaturalLanguageQuery={handleNaturalLanguageQuery}
+          />
+        )}
       </div>
     </div>
   );
