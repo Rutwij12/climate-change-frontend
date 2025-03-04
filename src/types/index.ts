@@ -30,7 +30,7 @@ export interface Author {
   name: string;
   citations: number;
   dob: string;
-  organisation_history: string[];
+  organisation_history: string;
   orcid: string;
   hindex: number;
   grants: Grant[];
@@ -90,7 +90,7 @@ export interface ChatHistoryMessage {
 
 export interface AuthorInfo {
   name?: string;
-  organisation_history?: string[];
+  organisation_history?: string;
   website?: string;
   works_count?: number;
   citations?: number;
@@ -107,4 +107,3 @@ export interface Connection {
   authorId: string;
   name: string;
 }
-
