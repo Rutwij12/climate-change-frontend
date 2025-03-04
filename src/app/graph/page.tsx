@@ -5,6 +5,17 @@ import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import type { Node as NVLNode, Relationship } from "@neo4j-nvl/base";
+import {
+  User,
+  Briefcase,
+  Link2,
+  Hash,
+  BookOpen,
+  FileText,
+  Award,
+  MapPin,
+  Calendar,
+} from "lucide-react";
 type TabType = "coauthor" | "topic" | "research" | "natural" | "dynamic";
 type NodeType = "author" | "work" | "institution" | "topic";
 
@@ -50,6 +61,12 @@ const InteractiveNvlWrapper = dynamic(
   { ssr: false }
 );
 
+// Add new types for node info
+type NodeInfo = {
+  type: "work" | "author" | "topic" | "institution";
+  data: any;
+};
+
 export default function GraphPage() {
   const searchParams = useSearchParams();
   const authorid = searchParams.get("authorid") || "";
@@ -73,6 +90,57 @@ export default function GraphPage() {
 
   // Add a ref to track initial render
   const isInitialRender = React.useRef(true);
+
+  // Add new state for author info
+  const [selectedAuthorInfo, setSelectedAuthorInfo] = useState<any>(null);
+  const [authorInfoLoading, setAuthorInfoLoading] = useState(false);
+
+  // Add useRef for the panel
+  const authorInfoPanelRef = React.useRef<HTMLDivElement>(null);
+
+  // Add new state for node info (separate from dynamic graph's author info)
+  const [selectedNodeInfo, setSelectedNodeInfo] = useState<NodeInfo | null>(
+    null
+  );
+  const [nodeInfoLoading, setNodeInfoLoading] = useState(false);
+  console.log("selectedNodeInfo", selectedNodeInfo);
+
+  // Add useRef for the panel
+  const nodeInfoPanelRef = React.useRef<HTMLDivElement>(null);
+
+  // Add useEffect to handle clicks outside the panel
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        authorInfoPanelRef.current &&
+        !authorInfoPanelRef.current.contains(event.target as Node)
+      ) {
+        setSelectedAuthorInfo(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Add useEffect to handle clicks outside the panel
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        nodeInfoPanelRef.current &&
+        !nodeInfoPanelRef.current.contains(event.target as Node)
+      ) {
+        setSelectedNodeInfo(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Convert initial connections to NVL format
   const convertInitialConnectionsToNvl = (
@@ -179,7 +247,7 @@ export default function GraphPage() {
   }, [dynamicNvlData]);
 
   // Add function to handle node expansion
-  const handleDynamicGraphNodeClick = async (node: NVLNode) => {
+  const handleDynamicGraphNodeDoubleClick = async (node: NVLNode) => {
     try {
       setLoading(true);
       const response = await axios.post<{ connections: InitialConnection[] }>(
@@ -441,6 +509,383 @@ export default function GraphPage() {
     </div>
   );
 
+  // Add function to handle node click and fetch author info
+  const handleDynanmicGraphNodeClick = async (node: any) => {
+    if (node.properties.nodeType !== "Author") return;
+
+    setAuthorInfoLoading(true);
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_auth_info`,
+        { authorid: node.id }
+      );
+      setSelectedAuthorInfo(response.data);
+    } catch (error) {
+      console.error("Error fetching author info:", error);
+    } finally {
+      setAuthorInfoLoading(false);
+    }
+  };
+
+  // Update the AuthorInfoPanel component to include a close button
+  const AuthorInfoPanel = ({
+    authorInfo,
+    loading,
+    onClose,
+  }: {
+    authorInfo: any;
+    loading: boolean;
+    onClose: () => void;
+  }) => {
+    if (loading) {
+      return (
+        <div className="h-48 flex items-center justify-center">
+          <svg
+            className="animate-spin h-6 w-6 text-green-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        </div>
+      );
+    }
+
+    if (!authorInfo) return null;
+
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-100 relative">
+        {/* Add close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+
+        <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <User className="h-5 w-5 text-green-500" />
+          Author Information
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800">
+                {authorInfo.name}
+              </h3>
+              {authorInfo.organisation_history?.[0] && (
+                <div className="flex items-center gap-2 text-slate-600 mt-1">
+                  <Briefcase className="h-4 w-4" />
+                  <span>{authorInfo.organisation_history[0]}</span>
+                </div>
+              )}
+            </div>
+
+            {authorInfo.website && (
+              <div className="flex items-center gap-2 text-green-600 hover:text-green-800">
+                <Link2 className="h-4 w-4" />
+                <a
+                  href={authorInfo.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  Personal Website
+                </a>
+              </div>
+            )}
+
+            {authorInfo.orcid && (
+              <div className="flex items-center gap-2 text-slate-600">
+                <Hash className="h-4 w-4" />
+                <span>ORCID: {authorInfo.orcid}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-slate-50 p-4 rounded-lg">
+              <div className="flex items-center gap-2 text-slate-600 mb-1">
+                <BookOpen className="h-4 w-4" />
+                <span className="text-sm">Works</span>
+              </div>
+              <p className="text-2xl font-bold text-green-600">
+                {authorInfo.works_count}
+              </p>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-lg">
+              <div className="flex items-center gap-2 text-slate-600 mb-1">
+                <FileText className="h-4 w-4" />
+                <span className="text-sm">Citations</span>
+              </div>
+              <p className="text-2xl font-bold text-green-600">
+                {authorInfo.citations}
+              </p>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-lg">
+              <div className="flex items-center gap-2 text-slate-600 mb-1">
+                <Award className="h-4 w-4" />
+                <span className="text-sm">h-index</span>
+              </div>
+              <p className="text-2xl font-bold text-green-600">
+                {authorInfo.hindex}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Add function to handle node click for regular graphs
+  const handleRegularGraphNodeClick = async (node: any) => {
+    if (!node.properties?.nodeType) return;
+
+    setNodeInfoLoading(true);
+    try {
+      const nodeType = node.properties.nodeType.toLowerCase();
+      const response = await axios.get(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL
+        }/api/graph/nodes/${nodeType}/${node.properties.id.split("/").pop()}`
+      );
+      setSelectedNodeInfo({
+        type: nodeType as NodeInfo["type"],
+        data: response.data,
+      });
+    } catch (error) {
+      console.error("Error fetching node info:", error);
+    } finally {
+      setNodeInfoLoading(false);
+    }
+  };
+
+  // Add NodeInfoPanel component
+  const NodeInfoPanel = ({
+    nodeInfo,
+    loading,
+    onClose,
+  }: {
+    nodeInfo: NodeInfo | null;
+    loading: boolean;
+    onClose: () => void;
+  }) => {
+    if (loading) {
+      return (
+        <div className="h-48 flex items-center justify-center">
+          <svg
+            className="animate-spin h-6 w-6 text-green-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        </div>
+      );
+    }
+
+    if (!nodeInfo) return null;
+
+    const BasePanel = ({ children }: { children: React.ReactNode }) => (
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-100 relative">
+        {/* Add close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+        {children}
+      </div>
+    );
+
+    switch (nodeInfo.type) {
+      case "author":
+        return (
+          <BasePanel>
+            <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <User className="h-5 w-5 text-green-500" />
+              Author Information
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800">
+                    {nodeInfo.data.name}
+                  </h3>
+                </div>
+                {nodeInfo.data.orcid && (
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Hash className="h-4 w-4" />
+                    <span>ORCID: {nodeInfo.data.orcid}</span>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 text-slate-600 mb-1">
+                    <BookOpen className="h-4 w-4" />
+                    <span className="text-sm">Works</span>
+                  </div>
+                  <p className="text-2xl font-bold text-green-600">
+                    {nodeInfo.data.works_count}
+                  </p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 text-slate-600 mb-1">
+                    <FileText className="h-4 w-4" />
+                    <span className="text-sm">Citations</span>
+                  </div>
+                  <p className="text-2xl font-bold text-green-600">
+                    {nodeInfo.data.cited_by_count}
+                  </p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 text-slate-600 mb-1">
+                    <Award className="h-4 w-4" />
+                    <span className="text-sm">h-index</span>
+                  </div>
+                  <p className="text-2xl font-bold text-green-600">
+                    {nodeInfo.data.h_index}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </BasePanel>
+        );
+
+      case "topic":
+        return (
+          <BasePanel>
+            <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <Hash className="h-5 w-5 text-pink-500" />
+              Topic Information
+            </h2>
+            <div className="text-lg font-semibold text-slate-800">
+              {nodeInfo.data.name}
+            </div>
+          </BasePanel>
+        );
+
+      case "institution":
+        return (
+          <BasePanel>
+            <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-blue-500" />
+              Institution Information
+            </h2>
+            <div className="space-y-2">
+              <div className="text-lg font-semibold text-slate-800">
+                {nodeInfo.data.name}
+              </div>
+              {nodeInfo.data.country_code && (
+                <div className="flex items-center gap-2 text-slate-600">
+                  <MapPin className="h-4 w-4" />
+                  <span>Country: {nodeInfo.data.country_code}</span>
+                </div>
+              )}
+              {nodeInfo.data.type && (
+                <div className="text-slate-600">Type: {nodeInfo.data.type}</div>
+              )}
+            </div>
+          </BasePanel>
+        );
+
+      case "work":
+        return (
+          <BasePanel>
+            <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-green-500" />
+              Publication Information
+            </h2>
+            <div className="space-y-4">
+              <div className="text-lg font-semibold text-slate-800">
+                {nodeInfo.data.title}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 text-slate-600 mb-1">
+                    <Calendar className="h-4 w-4" />
+                    <span className="text-sm">Year</span>
+                  </div>
+                  <p className="text-xl font-bold text-green-600">
+                    {nodeInfo.data.publicationYear}
+                  </p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 text-slate-600 mb-1">
+                    <FileText className="h-4 w-4" />
+                    <span className="text-sm">Citations</span>
+                  </div>
+                  <p className="text-xl font-bold text-green-600">
+                    {nodeInfo.data.cited_by_count}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </BasePanel>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   if (loading || (activeTab === "dynamic" && initialConnectionsLoading))
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -474,7 +919,7 @@ export default function GraphPage() {
     return <div>No graph data available.</div>;
 
   return (
-    <div className="p-4">
+    <div className="flex flex-col h-screen p-4">
       <h1 className="text-2xl font-bold mb-4">Graph Data</h1>
 
       {/* Tabs */}
@@ -544,10 +989,10 @@ export default function GraphPage() {
         </nav>
       </div>
 
-      {/* Graph Display - Fixed layout */}
-      <div className="flex h-[800px] w-full">
-        <div className="flex-1">
-          {/* Show dynamic graph */}
+      {/* Graph Display - Updated layout */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0">
+          {/* Dynamic graph */}
           {activeTab === "dynamic" && dynamicNvlData && (
             <InteractiveNvlWrapper
               nodes={dynamicNvlData.nodes}
@@ -560,11 +1005,11 @@ export default function GraphPage() {
                   console.log("onHover", element, hitTargets, evt),
                 onRelationshipRightClick: (rel, hitTargets, evt) =>
                   console.log("onRelationshipRightClick", rel, hitTargets, evt),
-                onNodeClick: (node, hitTargets, evt) =>
-                  console.log("onNodeClick", node, hitTargets, evt),
+                onNodeClick: (node) => handleDynanmicGraphNodeClick(node),
                 onNodeRightClick: (node, hitTargets, evt) =>
-                  handleDynamicGraphNodeClick(node),
-                onNodeDoubleClick: (node) => handleDynamicGraphNodeClick(node),
+                  handleDynamicGraphNodeDoubleClick(node),
+                onNodeDoubleClick: (node) =>
+                  handleDynamicGraphNodeDoubleClick(node),
                 onRelationshipClick: (rel, hitTargets, evt) =>
                   console.log("onRelationshipClick", rel, hitTargets, evt),
                 onRelationshipDoubleClick: (rel, hitTargets, evt) =>
@@ -582,7 +1027,7 @@ export default function GraphPage() {
             />
           )}
 
-          {/* Show other NVL graphs */}
+          {/* Other NVL graphs */}
           {activeTab !== "dynamic" && nvlData && (
             <InteractiveNvlWrapper
               nodes={nvlData.nodes}
@@ -595,8 +1040,7 @@ export default function GraphPage() {
                   console.log("onHover", element, hitTargets, evt),
                 onRelationshipRightClick: (rel, hitTargets, evt) =>
                   console.log("onRelationshipRightClick", rel, hitTargets, evt),
-                onNodeClick: (node, hitTargets, evt) =>
-                  console.log("onNodeClick", node, hitTargets, evt),
+                onNodeClick: (node) => handleRegularGraphNodeClick(node),
                 onNodeRightClick: (node, hitTargets, evt) =>
                   console.log("onNodeRightClick", node, hitTargets, evt),
                 onNodeDoubleClick: (node, hitTargets, evt) =>
@@ -620,6 +1064,29 @@ export default function GraphPage() {
 
         {/* Natural Language Sidebar */}
         {activeTab === "natural" && <NaturalLanguageSidebar />}
+
+        {/* Info Panels */}
+        {activeTab === "dynamic"
+          ? // Dynamic graph author info panel
+            (selectedAuthorInfo || authorInfoLoading) && (
+              <div className="mt-4">
+                <AuthorInfoPanel
+                  authorInfo={selectedAuthorInfo}
+                  loading={authorInfoLoading}
+                  onClose={() => setSelectedAuthorInfo(null)}
+                />
+              </div>
+            )
+          : // Regular graph node info panel
+            (selectedNodeInfo || nodeInfoLoading) && (
+              <div className="mt-4" ref={nodeInfoPanelRef}>
+                <NodeInfoPanel
+                  nodeInfo={selectedNodeInfo}
+                  loading={nodeInfoLoading}
+                  onClose={() => setSelectedNodeInfo(null)}
+                />
+              </div>
+            )}
       </div>
     </div>
   );
