@@ -14,7 +14,9 @@ export default function AuthorBook() {
   useEffect(() => {
     const fetchAuthors = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors/`, {
+          params: {user_email: localStorage.getItem("user_email") ?? "unknown"}
+        });
         setAuthors(
           response.data.map((author: AuthorCRM) => ({
             id: author.id,

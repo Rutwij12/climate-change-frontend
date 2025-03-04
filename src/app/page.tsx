@@ -52,7 +52,7 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isAuthenticated = localStorage.getItem('authToken');
+    const isAuthenticated = localStorage.getItem('user_email');
     console.log(isAuthenticated);
     console.log(!isAuthenticated);
     if (!isAuthenticated) {

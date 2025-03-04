@@ -79,7 +79,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     const fetchChatHistory = async () => {
       try {
         const response = await axios.get<ChatHistory[]>(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`, {
+            params: {user_email: localStorage.getItem("user_email") ?? "unknown"}
+          }
         );
         setChatHistory(response.data);
       } catch (error) {
@@ -92,7 +94,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
   const createNewChat = async () => {
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/chat`);
+      const user_email = localStorage.getItem("user_email") ?? "unknown";
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/chat`, {
+        user_email: user_email
+      });
       const newChatId: number = response.data.id;
       setChatId(newChatId); // Save new chat ID in global state
     } catch (error) {
