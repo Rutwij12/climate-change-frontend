@@ -3,26 +3,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
-import DynamicGraph from "@/components/DynamicGraph";
-import { InteractiveNvlWrapper } from "@neo4j-nvl/react";
-import type { Node, Edge } from "reactflow";
-import type {
-  Node as NVLNode,
-  Relationship,
-  HitTargets,
-} from "@neo4j-nvl/base";
-
-interface ApiResponse {
-  connections: {
-    authorId: string;
-    name: string;
-  }[];
-  precomputations: Record<string, unknown>;
-}
-
+import dynamic from "next/dynamic";
+import type { Node as NVLNode, Relationship } from "@neo4j-nvl/base";
 type TabType = "default" | "coauthor" | "topic" | "research" | "natural";
-
-// Define valid node types
 type NodeType = "author" | "work" | "institution" | "topic";
 
 const NODE_COLORS: Record<NodeType, string> = {
@@ -60,6 +43,12 @@ interface InitialConnection {
   authorId: string;
   name: string;
 }
+
+// Dynamic import with no SSR
+const InteractiveNvlWrapper = dynamic(
+  () => import("@neo4j-nvl/react").then((mod) => mod.InteractiveNvlWrapper),
+  { ssr: false }
+);
 
 export default function GraphPage() {
   const searchParams = useSearchParams();
