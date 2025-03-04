@@ -1,27 +1,30 @@
 "use client"
-import { GoogleLogin } from '@react-oauth/google';
+import React from "react";
+import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
 import { useRouter } from "next/navigation";
 
 const GoogleSignInButton: React.FC = () => {
   const router = useRouter();
 
-  const handleSuccess = (credentialResponse: any) => {
+  const handleSuccess = (credentialResponse: CredentialResponse) => {
     // Decode the JWT token to get user information
-    const decodedToken = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
+    if (credentialResponse.credential) {
+      const decodedToken = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
 
-    // Extract name and email from the decoded token
-    const name = decodedToken.name;
-    const email = decodedToken.email;
-    
-    // Store the information
-    localStorage.setItem('authToken', credentialResponse.credential);
-    localStorage.setItem('userName', name);
-    localStorage.setItem('userEmail', email);
-    
-    console.log('Name:', name);
-    console.log('Email:', email);
+      // Extract name and email from the decoded token
+      const name = decodedToken.name;
+      const email = decodedToken.email;
+      
+      // Store the information
+      localStorage.setItem('authToken', credentialResponse.credential);
+      localStorage.setItem('userName', name);
+      localStorage.setItem('userEmail', email);
+      
+      console.log('Name:', name);
+      console.log('Email:', email);
 
-    router.push('/');
+      router.push('/');
+    }
   };
 
   const handleError = () => {

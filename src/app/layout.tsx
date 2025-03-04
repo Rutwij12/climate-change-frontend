@@ -4,7 +4,6 @@ import { ChatProvider } from "@/lib/ChatContent";
 import "./globals.css";
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import type { AppProps } from 'next/app';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
