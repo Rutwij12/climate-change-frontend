@@ -55,15 +55,17 @@ const getRelationshipLabel = (type: string, properties: any) => {
   }
 };
 
+// Add new interfaces for type safety
+interface InitialConnection {
+  authorId: string;
+  name: string;
+}
+
 export default function GraphPage() {
   const searchParams = useSearchParams();
   const authorid = searchParams.get("authorid") || "";
   const paperid = searchParams.get("paperid") || "";
 
-  const [graphData, setGraphData] = useState<{
-    nodes: Node[];
-    edges: Edge[];
-  } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("default");
@@ -71,56 +73,126 @@ export default function GraphPage() {
     nodes: NVLNode[];
     rels: Relationship[];
   } | null>(null);
+  const [defaultNvlData, setDefaultNvlData] = useState<{
+    nodes: NVLNode[];
+    rels: Relationship[];
+  } | null>(null);
   const [queryInput, setQueryInput] = useState<string>("");
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
+  // Convert initial connections to NVL format
+  const convertInitialConnectionsToNvl = (
+    authorId: string,
+    connections: InitialConnection[]
+  ): { nodes: NVLNode[]; rels: Relationship[] } => {
+    // Create central node
+    const centralNode = {
+      id: authorId,
+      size: 60,
+      label: "Loading...",
+      caption: "Loading...",
+      type: "author",
+      color: NODE_COLORS.author,
+      properties: {
+        nodeType: "Author",
+      },
+    };
+
+    // Create connection nodes (deduplicated by authorId)
+    const uniqueConnections = Array.from(
+      new Map(
+        connections.map((conn): [string, InitialConnection] => [
+          conn.authorId,
+          conn,
+        ])
+      ).values()
+    ).filter((conn) => conn.authorId !== authorId); // Filter out self-connections
+
+    const connectionNodes: NVLNode[] = uniqueConnections.map((conn) => ({
+      id: conn.authorId,
+      size: 40,
+      label: conn.name,
+      caption: conn.name,
+      type: "author",
+      color: NODE_COLORS.author,
+      properties: {
+        nodeType: "Author",
+      },
+    }));
+
+    // Create relationships
+    const relationships: Relationship[] = connectionNodes.map(
+      (node, index) => ({
+        id: `rel-${index}`,
+        from: authorId,
+        to: node.id,
+        type: "connected",
+        caption: "CONNECTED",
+        label: "CONNECTED",
+        properties: {
+          relationType: "CONNECTED",
+        },
+      })
+    );
+
+    return {
+      nodes: [centralNode, ...connectionNodes],
+      rels: relationships,
+    };
+  };
+
+  // Add function to handle node expansion
+  const handleDefaultGraphNodeClick = async (node: NVLNode) => {
+    try {
+      setLoading(true);
+      const response = await axios.post<{ connections: InitialConnection[] }>(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`,
+        { authorid: node.id }
+      );
+
+      // Convert new connections to NVL format
+      const newData = convertInitialConnectionsToNvl(
+        node.id,
+        response.data.connections
+      );
+
+      // Add only new nodes and relationships
+      if (defaultNvlData) {
+        const existingNodeIds = new Set(defaultNvlData.nodes.map((n) => n.id));
+        const newNodes = newData.nodes.filter(
+          (n) => !existingNodeIds.has(n.id)
+        );
+
+        const existingRelIds = new Set(defaultNvlData.rels.map((r) => r.id));
+        const newRels = newData.rels.filter((r) => !existingRelIds.has(r.id));
+
+        setDefaultNvlData({
+          nodes: [...defaultNvlData.nodes, ...newNodes],
+          rels: [...defaultNvlData.rels, ...newRels],
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching next connections:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Modify the useEffect for initial data fetch
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.post<ApiResponse>(
+        const response = await axios.post<{ connections: InitialConnection[] }>(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_initial_connections`,
           { authorid, paperid }
         );
-        const data = response.data;
 
-        // Create a central node for the original author.
-        const centralNode: Node = {
-          id: authorid,
-          type: "circle",
-          position: { x: 400, y: 300 },
-          data: { label: "CENTRAL", expanded: false },
-        };
-
-        // Deduplicate connections by authorId.
-        const connectionMap = new Map<
-          string,
-          { authorId: string; name: string }
-        >();
-        data.connections.forEach((conn) => {
-          connectionMap.set(conn.authorId, conn);
-        });
-        const connectionNodes: Node[] = Array.from(connectionMap.values()).map(
-          (conn) => ({
-            id: conn.authorId,
-            type: "circle",
-            position: { x: 0, y: 0 },
-            data: { label: conn.name, expanded: false },
-          })
+        const nvlData = convertInitialConnectionsToNvl(
+          authorid,
+          response.data.connections
         );
-
-        // Create an edge from the central node to each connection node.
-        const connectionEdges: Edge[] = connectionNodes.map((node) => ({
-          id: `e-${centralNode.id}-${node.id}`,
-          source: centralNode.id,
-          target: node.id,
-          animated: true,
-        }));
-
-        setGraphData({
-          nodes: [centralNode, ...connectionNodes],
-          edges: connectionEdges,
-        });
-      } catch (error: unknown) {
+        setDefaultNvlData(nvlData);
+      } catch (error) {
         console.error("Error fetching initial graph data:", error);
         if (error instanceof Error) {
           setError(error.message);
@@ -328,7 +400,10 @@ export default function GraphPage() {
     );
 
   if (error) return <div>Error: {error}</div>;
-  if (!graphData) return <div>No graph data available.</div>;
+  if (activeTab === "default" && !defaultNvlData)
+    return <div>No graph data available.</div>;
+  if (activeTab !== "default" && !nvlData)
+    return <div>No graph data available.</div>;
 
   return (
     <div className="p-4">
@@ -365,12 +440,46 @@ export default function GraphPage() {
       {/* Graph Display - Fixed layout */}
       <div className="flex h-[800px] w-full">
         <div className="flex-1">
-          {/* Show default graph only on default tab */}
-          {activeTab === "default" && graphData && (
-            <DynamicGraph initialGraphData={graphData} />
+          {/* Show default graph with click handling */}
+          {activeTab === "default" && defaultNvlData && (
+            <InteractiveNvlWrapper
+              nodes={defaultNvlData.nodes}
+              rels={defaultNvlData.rels}
+              nvlOptions={{
+                initialZoom: 1,
+              }}
+              mouseEventCallbacks={{
+                onHover: (element, hitTargets, evt) =>
+                  console.log("onHover", element, hitTargets, evt),
+                onRelationshipRightClick: (rel, hitTargets, evt) =>
+                  console.log("onRelationshipRightClick", rel, hitTargets, evt),
+                onNodeClick: (node, hitTargets, evt) =>
+                  console.log("onNodeClick", node, hitTargets, evt),
+                onNodeRightClick: (node, hitTargets, evt) =>
+                  console.log("onNodeRightClick", node, hitTargets, evt),
+                onNodeDoubleClick: (node) => handleDefaultGraphNodeClick(node),
+                onRelationshipClick: (rel, hitTargets, evt) =>
+                  console.log("onRelationshipClick", rel, hitTargets, evt),
+                onRelationshipDoubleClick: (rel, hitTargets, evt) =>
+                  console.log(
+                    "onRelationshipDoubleClick",
+                    rel,
+                    hitTargets,
+                    evt
+                  ),
+                onCanvasClick: (evt) => console.log("onCanvasClick", evt),
+                onCanvasDoubleClick: (evt) =>
+                  console.log("onCanvasDoubleClick", evt),
+                onCanvasRightClick: (evt) =>
+                  console.log("onCanvasRightClick", evt),
+                onDrag: (nodes) => console.log("onDrag", nodes),
+                onPan: (evt) => console.log("onPan", evt),
+                onZoom: (zoomLevel) => console.log("onZoom", zoomLevel),
+              }}
+            />
           )}
 
-          {/* Show NVL graph for all non-default tabs when nvlData is available */}
+          {/* Show other NVL graphs without click handling */}
           {activeTab !== "default" && nvlData && (
             <InteractiveNvlWrapper
               nodes={nvlData.nodes}
