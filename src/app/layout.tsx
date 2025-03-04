@@ -3,6 +3,8 @@ import React from 'react';
 import { ChatProvider } from "@/lib/ChatContent";
 import "./globals.css";
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -23,8 +25,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ChatProvider>{children}</ChatProvider>
-      </body>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+          <ChatProvider>{children}</ChatProvider>
+        </GoogleOAuthProvider>
+    </body>
     </html>
   );
 }

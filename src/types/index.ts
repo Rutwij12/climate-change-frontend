@@ -87,3 +87,24 @@ export interface ChatHistoryMessage {
   order: number;
   user_message: boolean;
 }
+
+export interface AuthorInfo {
+  name?: string;
+  organisation_history?: string[];
+  website?: string;
+  works_count?: number;
+  citations?: number;
+  hindex?: number;
+  orcid?: string;
+  profile?: {
+    addresses?: {
+      address?: { country?: { value?: string } }[];
+    };
+  };
+}
+
+export interface Connection {
+  authorId: string;
+  name: string;
+}
+

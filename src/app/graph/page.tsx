@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
@@ -16,6 +15,7 @@ import {
   MapPin,
   Calendar,
 } from "lucide-react";
+import { Suspense } from "react";
 type TabType = "coauthor" | "topic" | "research" | "natural" | "dynamic";
 type NodeType = "author" | "work" | "institution" | "topic";
 
@@ -33,8 +33,35 @@ const getNodeColor = (labels: string[]): string => {
   return NODE_COLORS[nodeType] || "#999";
 };
 
-// Define a helper function to get relationship label
-const getRelationshipLabel = (type: string, properties: any) => {
+// Add custom interfaces for NVL types that aren't properly typed
+interface NVLNodeProperties {
+  id: string;
+  name?: string;
+  title?: string;
+  nodeType: string;
+  organisation?: string;
+  website?: string;
+  works_count?: number;
+  citations?: number;
+  hindex?: number;
+  orcid?: string;
+  country?: string;
+  [key: string]: any; // Allow additional properties since NVL nodes can have varying data
+}
+
+interface NVLRelationshipProperties {
+  relationType: string;
+  authorPosition?: string;
+  score?: number;
+  paperCount?: number;
+  [key: string]: any;
+}
+
+// Update the getRelationshipLabel function
+const getRelationshipLabel = (
+  type: string,
+  properties: NVLRelationshipProperties
+): string => {
   switch (type.toLowerCase()) {
     case "authored":
       return `AUTHORED (${properties.authorPosition || ""})`;
@@ -66,6 +93,35 @@ type NodeInfo = {
   type: "work" | "author" | "topic" | "institution";
   data: any;
 };
+
+// Define the author info interface structure
+interface AuthorInfo {
+  name: string;
+  organisation_history?: string[];
+  website?: string;
+  works_count?: number;
+  citations?: number;
+  hindex?: number;
+  orcid?: string;
+  profile?: {
+    addresses?: {
+      address?: Array<{
+        country?: {
+          value?: string;
+        };
+      }>;
+    };
+  };
+  // Add any other properties that might come from your API
+  [key: string]: any;
+}
+
+// Define the AuthorInfoPanel props interface
+interface AuthorInfoPanelProps {
+  authorInfo: AuthorInfo | null;
+  loading: boolean;
+  onClose: () => void;
+}
 
 // Move NaturalLanguageSidebar outside of the main GraphPage component
 const NaturalLanguageSidebar = ({
@@ -103,7 +159,8 @@ const NaturalLanguageSidebar = ({
   );
 };
 
-export default function GraphPage() {
+// Create a wrapper component that uses useSearchParams
+function GraphPageContent() {
   const searchParams = useSearchParams();
   const authorid = searchParams.get("authorid") || "";
   const paperid = searchParams.get("paperid") || "";
@@ -122,13 +179,13 @@ export default function GraphPage() {
     rels: Relationship[];
   } | null>(null);
   const [queryInput, setQueryInput] = useState<string>("");
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Add a ref to track initial render
   const isInitialRender = React.useRef(true);
 
   // Add new state for author info
-  const [selectedAuthorInfo, setSelectedAuthorInfo] = useState<any>(null);
+  const [selectedAuthorInfo, setSelectedAuthorInfo] =
+    useState<AuthorInfo | null>(null);
   const [authorInfoLoading, setAuthorInfoLoading] = useState(false);
 
   // Add useRef for the panel
@@ -524,12 +581,12 @@ export default function GraphPage() {
   }, [activeTab, authorid]);
 
   // Add function to handle node click and fetch author info
-  const handleDynanmicGraphNodeClick = async (node: any) => {
+  const handleDynamicGraphNodeClick = async (node: NVLNodeProperties) => {
     if (node.properties.nodeType !== "Author") return;
 
     setAuthorInfoLoading(true);
     try {
-      const response = await axios.post(
+      const response = await axios.post<AuthorInfo>(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_auth_info`,
         { authorid: node.id }
       );
@@ -542,14 +599,10 @@ export default function GraphPage() {
   };
 
   // Update the AuthorInfoPanel component to include a close button
-  const AuthorInfoPanel = ({
+  const AuthorInfoPanel: React.FC<AuthorInfoPanelProps> = ({
     authorInfo,
     loading,
     onClose,
-  }: {
-    authorInfo: any;
-    loading: boolean;
-    onClose: () => void;
   }) => {
     if (loading) {
       return (
@@ -1017,29 +1070,19 @@ export default function GraphPage() {
                   initialZoom: 1,
                 }}
                 mouseEventCallbacks={{
-                  onHover: (element, hitTargets, evt) =>
-                    console.log("onHover", element, hitTargets, evt),
-                  onRelationshipRightClick: (rel, hitTargets, evt) =>
-                    console.log(
-                      "onRelationshipRightClick",
-                      rel,
-                      hitTargets,
-                      evt
-                    ),
-                  onNodeClick: (node) => handleDynanmicGraphNodeClick(node),
-                  onNodeRightClick: (node, hitTargets, evt) =>
+                  onHover: (element) => console.log("onHover", element),
+                  onRelationshipRightClick: (rel) =>
+                    console.log("onRelationshipRightClick", rel),
+                  onNodeClick: (node) =>
+                    handleDynamicGraphNodeClick(node as NVLNodeProperties),
+                  onNodeRightClick: (node) =>
                     handleDynamicGraphNodeDoubleClick(node),
                   onNodeDoubleClick: (node) =>
                     handleDynamicGraphNodeDoubleClick(node),
-                  onRelationshipClick: (rel, hitTargets, evt) =>
-                    console.log("onRelationshipClick", rel, hitTargets, evt),
-                  onRelationshipDoubleClick: (rel, hitTargets, evt) =>
-                    console.log(
-                      "onRelationshipDoubleClick",
-                      rel,
-                      hitTargets,
-                      evt
-                    ),
+                  onRelationshipClick: (rel) =>
+                    console.log("onRelationshipClick", rel),
+                  onRelationshipDoubleClick: (rel) =>
+                    console.log("onRelationshipDoubleClick", rel),
                   onCanvasClick: (evt) => console.log("onCanvasClick", evt),
                   onDrag: (nodes) => console.log("onDrag", nodes),
                   onPan: (evt) => console.log("onPan", evt),
@@ -1057,29 +1100,18 @@ export default function GraphPage() {
                   initialZoom: 1,
                 }}
                 mouseEventCallbacks={{
-                  onHover: (element, hitTargets, evt) =>
-                    console.log("onHover", element, hitTargets, evt),
-                  onRelationshipRightClick: (rel, hitTargets, evt) =>
-                    console.log(
-                      "onRelationshipRightClick",
-                      rel,
-                      hitTargets,
-                      evt
-                    ),
+                  onHover: (element) => console.log("onHover", element),
+                  onRelationshipRightClick: (rel) =>
+                    console.log("onRelationshipRightClick", rel),
                   onNodeClick: (node) => handleRegularGraphNodeClick(node),
-                  onNodeRightClick: (node, hitTargets, evt) =>
-                    console.log("onNodeRightClick", node, hitTargets, evt),
-                  onNodeDoubleClick: (node, hitTargets, evt) =>
-                    console.log("onNodeDoubleClick", node, hitTargets, evt),
-                  onRelationshipClick: (rel, hitTargets, evt) =>
-                    console.log("onRelationshipClick", rel, hitTargets, evt),
-                  onRelationshipDoubleClick: (rel, hitTargets, evt) =>
-                    console.log(
-                      "onRelationshipDoubleClick",
-                      rel,
-                      hitTargets,
-                      evt
-                    ),
+                  onNodeRightClick: (node) =>
+                    console.log("onNodeRightClick", node),
+                  onNodeDoubleClick: (node) =>
+                    console.log("onNodeDoubleClick", node),
+                  onRelationshipClick: (rel) =>
+                    console.log("onRelationshipClick", rel),
+                  onRelationshipDoubleClick: (rel) =>
+                    console.log("onRelationshipDoubleClick", rel),
                   onDrag: (nodes) => console.log("onDrag", nodes),
                   onPan: (evt) => console.log("onPan", evt),
                   onZoom: (zoomLevel) => console.log("onZoom", zoomLevel),
@@ -1123,5 +1155,39 @@ export default function GraphPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// Update the default export to include Suspense
+export default function GraphPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <svg
+            className="animate-spin h-12 w-12 text-green-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        </div>
+      }
+    >
+      <GraphPageContent />
+    </Suspense>
   );
 }
