@@ -38,6 +38,7 @@ export default function AuthorCard({
         institution: author.organisation_history?.[0] ?? "Unknown",
         note: author.grants?.join(", ") ?? null,
         openalex_id: author.openAlexid || "",
+        user_email: localStorage.getItem("user_email") ?? "unknown"
       });
       addAuthor(author.name);
     } catch (error) {

@@ -24,8 +24,19 @@ export default function Home() {
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   useEffect(() => {
+    const user = localStorage.getItem("user_email");
+    if (!user) {
+      router.push("/login");
+    } else {
+      if (!hasCheckedAuth) {
+        setHasCheckedAuth(true);
+        router.refresh();
+      }
+    }
+
     if (input) return; // Stop auto-typing when user starts typing
     const currentText = exampleQuestions[currentExampleIndex];
     const typeSpeed = isDeleting ? 50 : 100; // Faster delete, slower typing
@@ -52,7 +63,7 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isAuthenticated = localStorage.getItem('authToken');
+    const isAuthenticated = localStorage.getItem('user_email');
     console.log(isAuthenticated);
     console.log(!isAuthenticated);
     if (!isAuthenticated) {

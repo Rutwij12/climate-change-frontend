@@ -11,17 +11,14 @@ const GoogleSignInButton: React.FC = () => {
     if (credentialResponse.credential) {
       const decodedToken = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
 
-      // Extract name and email from the decoded token
-      const name = decodedToken.name;
-      const email = decodedToken.email;
-      
-      // Store the information
-      localStorage.setItem('authToken', credentialResponse.credential);
-      localStorage.setItem('userName', name);
-      localStorage.setItem('userEmail', email);
-      
-      console.log('Name:', name);
-      console.log('Email:', email);
+    // Extract name and email from the decoded token
+    const email = decodedToken.email;
+    
+    // TODO: Api call to users db - verify if valid id - return id of user or NULL.
+    
+    // Store the information
+    localStorage.setItem('user_email', email);
+    console.log('Email:', email);
 
       router.push('/');
     }
