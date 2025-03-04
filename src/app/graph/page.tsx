@@ -186,7 +186,7 @@ export default function GraphPage() {
         JSON.stringify(response.data.connections, null, 2)
       );
       // Convert new connections to NVL format
-      const newData = await convertInitialConnectionsToNvl(
+      const newData = convertInitialConnectionsToNvl(
         node.id,
         response.data.connections
       );
@@ -212,7 +212,13 @@ export default function GraphPage() {
         );
 
         setDefaultNvlData({
-          nodes: [...defaultNvlData.nodes, ...newNodes],
+          nodes: [
+            ...defaultNvlData.nodes.map((n) => ({
+              ...n,
+              size: n.id === node.id ? 60 : 40, // Make clicked node big, others small
+            })),
+            ...newNodes,
+          ],
           rels: [...defaultNvlData.rels, ...newRels],
         });
       }
