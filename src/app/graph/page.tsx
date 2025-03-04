@@ -74,7 +74,7 @@ export default function GraphPage() {
     authorId: string,
     connections: InitialConnection[]
   ): { nodes: NVLNode[]; rels: Relationship[] } => {
-    // Create central node
+    // Create central node with loading state
     const centralNode = {
       id: authorId,
       size: 60,
@@ -87,7 +87,7 @@ export default function GraphPage() {
       },
     };
 
-    // Create connection nodes (deduplicated by authorId)
+    // Rest of the conversion logic remains the same
     const uniqueConnections = Array.from(
       new Map(
         connections.map((conn): [string, InitialConnection] => [
@@ -95,7 +95,7 @@ export default function GraphPage() {
           conn,
         ])
       ).values()
-    ).filter((conn) => conn.authorId !== authorId); // Filter out self-connections
+    ).filter((conn) => conn.authorId !== authorId);
 
     const connectionNodes: NVLNode[] = uniqueConnections.map((conn) => ({
       id: conn.authorId,
@@ -109,26 +109,69 @@ export default function GraphPage() {
       },
     }));
 
-    // Create relationships
-    const relationships: Relationship[] = connectionNodes.map(
-      (node, index) => ({
-        id: `rel-${index}`,
-        from: authorId,
-        to: node.id,
-        type: "connected",
-        caption: "CONNECTED",
-        label: "CONNECTED",
-        properties: {
-          relationType: "CONNECTED",
-        },
-      })
-    );
+    const relationships: Relationship[] = connectionNodes.map((node) => ({
+      id: `rel-${authorId}-${node.id}`,
+      from: authorId,
+      to: node.id,
+      type: "connected",
+      caption: "CONNECTED",
+      label: "CONNECTED",
+      properties: {
+        relationType: "CONNECTED",
+      },
+    }));
 
     return {
       nodes: [centralNode, ...connectionNodes],
       rels: relationships,
     };
   };
+
+  // Add useEffect to update central node info
+  useEffect(() => {
+    if (defaultNvlData && defaultNvlData.nodes.length > 0) {
+      const centralNode: any = defaultNvlData.nodes[0];
+      if (centralNode.label === "Loading...") {
+        (async () => {
+          try {
+            const response = await axios.post(
+              `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_auth_info`,
+              { authorid: centralNode.id }
+            );
+            const authorInfo = response.data;
+
+            setDefaultNvlData((prev: any) => ({
+              nodes: [
+                {
+                  ...prev.nodes[0],
+                  label: authorInfo.name,
+                  caption: authorInfo.name,
+                  properties: {
+                    ...prev.nodes[0].properties,
+                    name: authorInfo.name,
+                    organisation: authorInfo.organisation_history?.[0],
+                    website: authorInfo.website,
+                    works_count: authorInfo.works_count,
+                    citations: authorInfo.citations,
+                    hindex: authorInfo.hindex,
+                    orcid: authorInfo.orcid,
+                    country:
+                      authorInfo.profile?.addresses?.address?.[0]?.country
+                        ?.value,
+                    ...authorInfo,
+                  },
+                },
+                ...prev.nodes.slice(1),
+              ],
+              rels: prev.rels,
+            }));
+          } catch (error) {
+            console.error("Error fetching central author info:", error);
+          }
+        })();
+      }
+    }
+  }, [defaultNvlData]);
 
   // Add function to handle node expansion
   const handleDefaultGraphNodeClick = async (node: NVLNode) => {
@@ -138,9 +181,12 @@ export default function GraphPage() {
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_next_connections`,
         { authorid: node.id }
       );
-
+      console.log(
+        "response for next connections",
+        JSON.stringify(response.data.connections, null, 2)
+      );
       // Convert new connections to NVL format
-      const newData = convertInitialConnectionsToNvl(
+      const newData = await convertInitialConnectionsToNvl(
         node.id,
         response.data.connections
       );
@@ -152,8 +198,18 @@ export default function GraphPage() {
           (n) => !existingNodeIds.has(n.id)
         );
 
-        const existingRelIds = new Set(defaultNvlData.rels.map((r) => r.id));
-        const newRels = newData.rels.filter((r) => !existingRelIds.has(r.id));
+        // Check relationships in both directions
+        const existingRelSet = new Set(
+          defaultNvlData.rels
+            .map((r) => `${r.from}-${r.to}`)
+            .concat(defaultNvlData.rels.map((r) => `${r.to}-${r.from}`))
+        );
+
+        const newRels = newData.rels.filter(
+          (r) =>
+            !existingRelSet.has(`${r.from}-${r.to}`) &&
+            !existingRelSet.has(`${r.to}-${r.from}`)
+        );
 
         setDefaultNvlData({
           nodes: [...defaultNvlData.nodes, ...newNodes],
@@ -176,7 +232,7 @@ export default function GraphPage() {
           { authorid, paperid }
         );
 
-        const nvlData = convertInitialConnectionsToNvl(
+        const nvlData = await convertInitialConnectionsToNvl(
           authorid,
           response.data.connections
         );
@@ -445,7 +501,7 @@ export default function GraphPage() {
                 onNodeClick: (node, hitTargets, evt) =>
                   console.log("onNodeClick", node, hitTargets, evt),
                 onNodeRightClick: (node, hitTargets, evt) =>
-                  console.log("onNodeRightClick", node, hitTargets, evt),
+                  handleDefaultGraphNodeClick(node),
                 onNodeDoubleClick: (node) => handleDefaultGraphNodeClick(node),
                 onRelationshipClick: (rel, hitTargets, evt) =>
                   console.log("onRelationshipClick", rel, hitTargets, evt),
@@ -457,10 +513,6 @@ export default function GraphPage() {
                     evt
                   ),
                 onCanvasClick: (evt) => console.log("onCanvasClick", evt),
-                onCanvasDoubleClick: (evt) =>
-                  console.log("onCanvasDoubleClick", evt),
-                onCanvasRightClick: (evt) =>
-                  console.log("onCanvasRightClick", evt),
                 onDrag: (nodes) => console.log("onDrag", nodes),
                 onPan: (evt) => console.log("onPan", evt),
                 onZoom: (zoomLevel) => console.log("onZoom", zoomLevel),
@@ -496,11 +548,6 @@ export default function GraphPage() {
                     hitTargets,
                     evt
                   ),
-                onCanvasClick: (evt) => console.log("onCanvasClick", evt),
-                onCanvasDoubleClick: (evt) =>
-                  console.log("onCanvasDoubleClick", evt),
-                onCanvasRightClick: (evt) =>
-                  console.log("onCanvasRightClick", evt),
                 onDrag: (nodes) => console.log("onDrag", nodes),
                 onPan: (evt) => console.log("onPan", evt),
                 onZoom: (zoomLevel) => console.log("onZoom", zoomLevel),
