@@ -59,7 +59,7 @@ export default function Home() {
     }, delay);
     
     return () => clearTimeout(timeout);
-  }, [charIndex, isDeleting, currentExampleIndex, input]);
+  }, [charIndex, isDeleting, currentExampleIndex, input, router, hasCheckedAuth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
