@@ -134,32 +134,114 @@ const NaturalLanguageSidebar = ({
   setQueryInput,
   loading,
   handleNaturalLanguageQuery,
+  executeSavedQuery,
+  handleSaveQuery,
+  savedQueries,
+  currentGeneratedQuery,
+  isNamingQuery,
+  newQueryName,
+  setIsNamingQuery,
+  setNewQueryName,
 }: {
   queryInput: string;
   setQueryInput: (value: string) => void;
   loading: boolean;
   handleNaturalLanguageQuery: () => void;
+  executeSavedQuery: (query: string) => void;
+  handleSaveQuery: () => void;
+  savedQueries: Array<{ id: number; name: string; cipher_query: string }>;
+  currentGeneratedQuery: string | null;
+  isNamingQuery: boolean;
+  newQueryName: string;
+  setIsNamingQuery: (value: boolean) => void;
+  setNewQueryName: (value: string) => void;
 }) => {
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-
   return (
     <div className="w-64 bg-white p-4 border-l border-gray-200">
       <h3 className="text-lg font-semibold mb-4">Natural Language Query</h3>
+
+      {/* Saved Queries Section */}
+      <div className="mb-6">
+        <h4 className="text-md font-semibold mb-2">Saved Queries</h4>
+        <div className="space-y-2">
+          {savedQueries.map((query) => (
+            <div
+              key={query.id}
+              className="flex items-center justify-between p-2 bg-gray-50 rounded"
+            >
+              <span className="truncate flex-1">{query.name}</span>
+              <button
+                onClick={() => executeSavedQuery(query.cipher_query)}
+                className="ml-2 p-1 text-green-600 hover:text-green-800"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <textarea
-        ref={textareaRef}
         className="w-full p-2 border border-gray-300 rounded-md mb-4"
         rows={4}
         value={queryInput}
         onChange={(e) => setQueryInput(e.target.value)}
         placeholder="Enter your query here... (e.g., 'Show me this author's coauthors who work on machine learning')"
       />
+
       <button
         onClick={handleNaturalLanguageQuery}
-        className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+        className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors mb-2"
         disabled={loading || !queryInput.trim()}
       >
         {loading ? "Loading..." : "Submit Query"}
       </button>
+
+      {currentGeneratedQuery && !isNamingQuery && (
+        <button
+          onClick={() => setIsNamingQuery(true)}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Save Query
+        </button>
+      )}
+
+      {isNamingQuery && (
+        <div className="mt-4">
+          <input
+            type="text"
+            value={newQueryName}
+            onChange={(e) => setNewQueryName(e.target.value)}
+            placeholder="Enter query name"
+            className="w-full p-2 border border-gray-300 rounded-md mb-2"
+          />
+          <button
+            onClick={handleSaveQuery}
+            className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+            disabled={!newQueryName.trim()}
+          >
+            Save
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -205,6 +287,16 @@ function GraphPageContent() {
 
   // Add useRef for the panel
   const nodeInfoPanelRef = React.useRef<HTMLDivElement>(null);
+
+  // Add new state for saved queries and current query
+  const [savedQueries, setSavedQueries] = useState<
+    Array<{ id: number; name: string; cipher_query: string }>
+  >([]);
+  const [currentGeneratedQuery, setCurrentGeneratedQuery] = useState<
+    string | null
+  >(null);
+  const [isNamingQuery, setIsNamingQuery] = useState(false);
+  const [newQueryName, setNewQueryName] = useState("");
 
   // Add useEffect to handle clicks outside the panel
   useEffect(() => {
@@ -504,6 +596,7 @@ function GraphPageContent() {
     }
   };
 
+  // Add to the existing handleNaturalLanguageQuery function
   const handleNaturalLanguageQuery = async () => {
     try {
       setLoading(true);
@@ -516,6 +609,10 @@ function GraphPageContent() {
         }
       );
 
+      // Store the generated query
+      setCurrentGeneratedQuery(response.data.generated_query);
+
+      // Transform nodes and relationships as before
       const nvlNodes: NVLNode[] = response.data.graph.nodes.map((node: any) => {
         const isMainAuthor = node.properties.id.toString() === authorid;
         return {
@@ -558,6 +655,101 @@ function GraphPageContent() {
       setLoading(false);
     }
   };
+
+  // Add function to save query
+  const handleSaveQuery = async () => {
+    try {
+      if (!currentGeneratedQuery || !newQueryName) return;
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/queries`,
+        {
+          cipher_query: currentGeneratedQuery,
+          name: newQueryName,
+          user: "default_user", // Using default user for now
+        }
+      );
+
+      setSavedQueries([...savedQueries, response.data]);
+      setIsNamingQuery(false);
+      setNewQueryName("");
+    } catch (error) {
+      console.error("Error saving query:", error);
+    }
+  };
+
+  // Add function to execute saved query
+  const executeSavedQuery = async (query: string) => {
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/execute_cipher`,
+        {
+          query,
+          params: { author_id: authorid },
+          limit: 50,
+        }
+      );
+
+      // Use the same node/relationship transformation logic
+      const nvlNodes: NVLNode[] = response.data.graph.nodes.map((node: any) => {
+        const isMainAuthor = node.properties.id.toString() === authorid;
+        return {
+          id: node.id.toString(),
+          size: isMainAuthor ? 60 : node.labels.includes("Author") ? 40 : 30,
+          label: node.properties.name || node.properties.title || node.id,
+          caption: node.properties.name || node.properties.title || node.id,
+          type: node.labels[0].toLowerCase(),
+          color: getNodeColor(node.labels, isMainAuthor),
+          properties: {
+            ...node.properties,
+            nodeType: node.labels[0],
+          },
+        };
+      });
+
+      const nvlRels: Relationship[] = response.data.graph.relationships.map(
+        (rel: any) => ({
+          id: rel.id.toString(),
+          from: rel.start_node.toString(),
+          to: rel.end_node.toString(),
+          type: rel.type.toLowerCase(),
+          caption: getRelationshipLabel(rel.type, rel.properties),
+          label: getRelationshipLabel(rel.type, rel.properties),
+          properties: {
+            ...rel.properties,
+            relationType: rel.type,
+          },
+        })
+      );
+
+      setNvlData({ nodes: nvlNodes, rels: nvlRels });
+      setError(null);
+    } catch (error) {
+      console.error("Error executing saved query:", error);
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load saved queries on component mount
+  useEffect(() => {
+    const fetchSavedQueries = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/queries?user=default_user`
+        );
+        setSavedQueries(response.data);
+      } catch (error) {
+        console.error("Error fetching saved queries:", error);
+      }
+    };
+
+    fetchSavedQueries();
+  }, []);
 
   useEffect(() => {
     if (!authorid) return;
@@ -1155,6 +1347,14 @@ function GraphPageContent() {
             setQueryInput={setQueryInput}
             loading={loading}
             handleNaturalLanguageQuery={handleNaturalLanguageQuery}
+            executeSavedQuery={executeSavedQuery}
+            handleSaveQuery={handleSaveQuery}
+            savedQueries={savedQueries}
+            currentGeneratedQuery={currentGeneratedQuery}
+            isNamingQuery={isNamingQuery}
+            newQueryName={newQueryName}
+            setIsNamingQuery={setIsNamingQuery}
+            setNewQueryName={setNewQueryName}
           />
         )}
       </div>
