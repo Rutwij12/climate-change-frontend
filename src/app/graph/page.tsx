@@ -160,8 +160,52 @@ const NaturalLanguageSidebar = ({
     <div className="w-64 bg-white p-4 border-l border-gray-200">
       <h3 className="text-lg font-semibold mb-4">Natural Language Query</h3>
 
-      {/* Saved Queries Section */}
-      <div className="mb-6">
+      <textarea
+        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+        rows={4}
+        value={queryInput}
+        onChange={(e) => setQueryInput(e.target.value)}
+        placeholder="Enter your query here... (e.g., 'Show me this author's coauthors who work on machine learning')"
+      />
+
+      <button
+        onClick={handleNaturalLanguageQuery}
+        className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors mb-2"
+        disabled={loading || !queryInput.trim()}
+      >
+        {loading ? "Loading..." : "Submit Query"}
+      </button>
+
+      {currentGeneratedQuery && !isNamingQuery && (
+        <button
+          onClick={() => setIsNamingQuery(true)}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors mb-4"
+        >
+          Save Query
+        </button>
+      )}
+
+      {isNamingQuery && (
+        <div className="mb-4">
+          <input
+            type="text"
+            value={newQueryName}
+            onChange={(e) => setNewQueryName(e.target.value)}
+            placeholder="Enter query name"
+            className="w-full p-2 border border-gray-300 rounded-md mb-2"
+          />
+          <button
+            onClick={handleSaveQuery}
+            className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+            disabled={!newQueryName.trim()}
+          >
+            Save
+          </button>
+        </div>
+      )}
+
+      {/* Saved Queries Section moved below */}
+      <div className="mt-6">
         <h4 className="text-md font-semibold mb-2">Saved Queries</h4>
         <div className="space-y-2">
           {savedQueries.map((query) => (
@@ -198,50 +242,6 @@ const NaturalLanguageSidebar = ({
           ))}
         </div>
       </div>
-
-      <textarea
-        className="w-full p-2 border border-gray-300 rounded-md mb-4"
-        rows={4}
-        value={queryInput}
-        onChange={(e) => setQueryInput(e.target.value)}
-        placeholder="Enter your query here... (e.g., 'Show me this author's coauthors who work on machine learning')"
-      />
-
-      <button
-        onClick={handleNaturalLanguageQuery}
-        className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors mb-2"
-        disabled={loading || !queryInput.trim()}
-      >
-        {loading ? "Loading..." : "Submit Query"}
-      </button>
-
-      {currentGeneratedQuery && !isNamingQuery && (
-        <button
-          onClick={() => setIsNamingQuery(true)}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Save Query
-        </button>
-      )}
-
-      {isNamingQuery && (
-        <div className="mt-4">
-          <input
-            type="text"
-            value={newQueryName}
-            onChange={(e) => setNewQueryName(e.target.value)}
-            placeholder="Enter query name"
-            className="w-full p-2 border border-gray-300 rounded-md mb-2"
-          />
-          <button
-            onClick={handleSaveQuery}
-            className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
-            disabled={!newQueryName.trim()}
-          >
-            Save
-          </button>
-        </div>
-      )}
     </div>
   );
 };
@@ -499,6 +499,13 @@ function GraphPageContent() {
     }
   };
 
+  useEffect(() => {
+    setQueryInput("");
+    setCurrentGeneratedQuery(null);
+    setIsNamingQuery(false);
+    setNewQueryName("");
+  }, [activeTab]);
+
   // Modify the useEffect for initial data fetch
   useEffect(() => {
     async function fetchData() {
@@ -656,7 +663,7 @@ function GraphPageContent() {
     }
   };
 
-  // Add function to save query
+  // Update the handleSaveQuery function
   const handleSaveQuery = async () => {
     try {
       if (!currentGeneratedQuery || !newQueryName) return;
@@ -673,6 +680,7 @@ function GraphPageContent() {
       setSavedQueries([...savedQueries, response.data]);
       setIsNamingQuery(false);
       setNewQueryName("");
+      setCurrentGeneratedQuery(null); // Reset the current query after saving
     } catch (error) {
       console.error("Error saving query:", error);
     }
@@ -724,6 +732,7 @@ function GraphPageContent() {
       );
 
       setNvlData({ nodes: nvlNodes, rels: nvlRels });
+      setQueryInput("");
       setError(null);
     } catch (error) {
       console.error("Error executing saved query:", error);
