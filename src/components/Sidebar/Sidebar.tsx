@@ -126,11 +126,13 @@ export default function Sidebar({
           <h2 className="text-lg font-semibold mb-3">Chat History</h2>
           <div>
             {chatHistory.length > 0 ? (
-              chatHistory.map((chat) => (
+              chatHistory
+                .filter((chat) => chat.message_count > 0)
+                .map((chat) => (
                 <ChatHistoryItem key={chat.id} chatId={chat.id} title={chat.name} />
               ))
             ) : (
-              <p className="text-sm text-gray-300">Loading chat history</p>
+              <p className="text-sm text-gray-300">No chat history</p>
             )}
           </div>
 

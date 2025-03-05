@@ -94,8 +94,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         console.error("Failed to fetch chat history:", error);
       }
     };
-    createNewChat();
+    
     fetchChatHistory();
+    createNewChat();
   }, []);
 
   const createNewChat = async () => {
