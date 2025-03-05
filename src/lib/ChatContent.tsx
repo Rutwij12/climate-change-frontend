@@ -94,7 +94,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         console.error("Failed to fetch chat history:", error);
       }
     };
-    
+
     fetchChatHistory();
     createNewChat();
   }, []);
@@ -106,6 +106,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         user_email: user_email
       });
       const newChatId: number = response.data.id;
+      setMessages([]);
       setChatId(newChatId); // Save new chat ID in global state
     } catch (error) {
       console.error("Failed to create new chat:", error);
