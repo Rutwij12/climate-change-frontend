@@ -218,7 +218,7 @@ const NaturalLanguageSidebar = ({
     try {
       if (!renameValue.trim()) return;
 
-      const response = await axios.patch(
+      await axios.patch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/queries/${queryId}/rename`,
         { name: renameValue }
       );
