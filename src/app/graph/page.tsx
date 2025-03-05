@@ -344,7 +344,7 @@ function GraphPageContent() {
     }
   }, [dynamicNvlData]);
 
-  // Add function to handle node expansion
+  // Update the handleDynamicGraphNodeDoubleClick function
   const handleDynamicGraphNodeDoubleClick = async (node: NVLNode) => {
     try {
       setLoading(true);
@@ -386,9 +386,16 @@ function GraphPageContent() {
           nodes: [
             ...dynamicNvlData.nodes.map((n) => ({
               ...n,
-              size: n.id === node.id ? 60 : 40, // Make clicked node big, others small
+              size: n.id === node.id ? 60 : 40, // Keep main author and clicked node big
+              color:
+                n.id === authorid ? NODE_COLORS.mainAuthor : NODE_COLORS.author, // Ensure main author keeps its color
             })),
-            ...newNodes,
+            ...newNodes.map((n) => ({
+              ...n,
+              size: n.id === authorid ? 60 : 40,
+              color:
+                n.id === authorid ? NODE_COLORS.mainAuthor : NODE_COLORS.author,
+            })),
           ],
           rels: [...dynamicNvlData.rels, ...newRels],
         });
