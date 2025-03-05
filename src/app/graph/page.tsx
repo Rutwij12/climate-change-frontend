@@ -19,16 +19,21 @@ import { Suspense } from "react";
 type TabType = "coauthor" | "topic" | "research" | "natural" | "dynamic";
 type NodeType = "author" | "work" | "institution" | "topic";
 
-const NODE_COLORS: Record<NodeType, string> = {
+const NODE_COLORS: Record<NodeType | "mainAuthor", string> = {
+  mainAuthor: "#FF0000", // Red color for main author
   author: "#FFA726",
   work: "#66BB6A",
   institution: "#42A5F5",
-  topic: "#EC407A",
+  topic: "#FF69B4",
 };
 
 // Helper function to get node color based on label
-const getNodeColor = (labels: string[]): string => {
+const getNodeColor = (
+  labels: string[],
+  isMainAuthor: boolean = false
+): string => {
   if (!labels || labels.length === 0) return "#999";
+  if (isMainAuthor) return NODE_COLORS.mainAuthor;
   const nodeType = labels[0].toLowerCase() as NodeType;
   return NODE_COLORS[nodeType] || "#999";
 };
@@ -247,7 +252,7 @@ function GraphPageContent() {
       label: "Loading...",
       caption: "Loading...",
       type: "author",
-      color: NODE_COLORS.author,
+      color: NODE_COLORS.mainAuthor, // Use mainAuthor color
       properties: {
         nodeType: "Author",
       },
@@ -447,25 +452,21 @@ function GraphPageContent() {
       );
 
       // Transform Neo4j graph data to NVL format
-      const nvlNodes: NVLNode[] = response.data.graph.nodes.map(
-        (node: any) => ({
+      const nvlNodes: NVLNode[] = response.data.graph.nodes.map((node: any) => {
+        const isMainAuthor = node.properties.id.toString() === authorid;
+        return {
           id: node.id.toString(),
-          size:
-            node.properties.id.toString() === authorid
-              ? 60
-              : node.labels.includes("Author")
-              ? 40
-              : 30,
+          size: isMainAuthor ? 60 : node.labels.includes("Author") ? 40 : 30,
           label: node.properties.name || node.properties.title || node.id,
           caption: node.properties.name || node.properties.title || node.id,
           type: node.labels[0].toLowerCase(),
-          color: getNodeColor(node.labels),
+          color: getNodeColor(node.labels, isMainAuthor),
           properties: {
             ...node.properties,
             nodeType: node.labels[0],
           },
-        })
-      );
+        };
+      });
       console.log("nvlNodes", nvlNodes);
 
       const nvlRels: Relationship[] = response.data.graph.relationships.map(
@@ -508,25 +509,21 @@ function GraphPageContent() {
         }
       );
 
-      const nvlNodes: NVLNode[] = response.data.graph.nodes.map(
-        (node: any) => ({
+      const nvlNodes: NVLNode[] = response.data.graph.nodes.map((node: any) => {
+        const isMainAuthor = node.properties.id.toString() === authorid;
+        return {
           id: node.id.toString(),
-          size:
-            node.id.toString() === authorid
-              ? 60
-              : node.labels.includes("Author")
-              ? 40
-              : 30,
+          size: isMainAuthor ? 60 : node.labels.includes("Author") ? 40 : 30,
           label: node.properties.name || node.properties.title || node.id,
           caption: node.properties.name || node.properties.title || node.id,
           type: node.labels[0].toLowerCase(),
-          color: getNodeColor(node.labels),
+          color: getNodeColor(node.labels, isMainAuthor),
           properties: {
             ...node.properties,
             nodeType: node.labels[0],
           },
-        })
-      );
+        };
+      });
 
       const nvlRels: Relationship[] = response.data.graph.relationships.map(
         (rel: any) => ({
