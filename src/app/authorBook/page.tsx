@@ -4,12 +4,14 @@ import axios from "axios";
 import BookComponent from "@/components/AuthorBook/Book"
 import { AuthorCRM, Status } from "@/types";
 import Sidebar from "@/components/Sidebar/Sidebar";
+import { useRouter } from "next/navigation";
 
 export default function AuthorBook() {
   const [authors, setAuthors] = useState<AuthorCRM[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchAuthors = async () => {
@@ -106,6 +108,14 @@ export default function AuthorBook() {
           sidebarOpen ? "ml-[250px]" : "ml-0"
         } p-8`}
       >
+        {/* Back to Chat Button */}
+        <button
+          onClick={() => router.back()}
+          className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md shadow-md transition-colors duration-200"
+        >
+          Back to Chat
+        </button>
+
         <h1 className="text-3xl font-bold text-center mb-8 text-emerald-800">
           Author Book
         </h1>
