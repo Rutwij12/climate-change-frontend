@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import type { Node as NVLNode, Relationship } from "@neo4j-nvl/base";
 import {
@@ -402,6 +402,7 @@ const NaturalLanguageSidebar = ({
 
 // Create a wrapper component that uses useSearchParams
 function GraphPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const authorid = searchParams.get("authorid") || "";
   const paperid = searchParams.get("paperid") || "";
@@ -1355,6 +1356,14 @@ function GraphPageContent() {
 
   return (
     <div className="flex flex-col h-screen p-4">
+
+    <button
+      onClick={() => router.back()}
+      className="fixed top-4 right-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded shadow-md"
+    >
+      Back to Chat
+    </button>
+
       <h1 className="text-2xl font-bold mb-4">Graph Data</h1>
 
       {/* Tabs */}
