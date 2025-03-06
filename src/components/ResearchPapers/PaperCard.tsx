@@ -8,7 +8,7 @@ import type { Paper } from "@/types"
 import { motion, AnimatePresence } from "framer-motion"
 import AuthorCard from "./AuthorCard"
 import { useResearchContext } from "@/lib/ResearchContext"
-import axios from "axios"
+// import axios from "axios"
 
 export default function PaperCard({ paper }: { paper: Paper | undefined }) {
   const { paperStates, updatePaperState } = useResearchContext();
