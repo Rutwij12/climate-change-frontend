@@ -9,15 +9,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useChatContext } from "@/lib/ChatContent";
+import { useResearchContext } from "@/lib/ResearchContext";
 
 // ChatHistoryItem Component
 function ChatHistoryItem({ chatId, title }: { chatId: number; title: string }) {
   const { fetchChatMessages } = useChatContext();
+  const { setSelectedChallenge } = useResearchContext();
   const router = useRouter();
 
   return (
     <button
       onClick={() => {
+        // Clear challenge while switching between chat history items
+        setSelectedChallenge(null);
+        
         // First fetch the chat messages
         fetchChatMessages(chatId);
         

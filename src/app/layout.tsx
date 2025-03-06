@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import React from 'react';
 import { ChatProvider } from "@/lib/ChatContent";
+import { ResearchProvider } from "@/lib/ResearchContext";
 import "./globals.css";
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -26,7 +27,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
-          <ChatProvider>{children}</ChatProvider>
+          <ResearchProvider>
+            <ChatProvider>{children}</ChatProvider>
+          </ResearchProvider>
         </GoogleOAuthProvider>
     </body>
     </html>

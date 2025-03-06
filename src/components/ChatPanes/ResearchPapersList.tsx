@@ -2,27 +2,32 @@
 
 import React, { useEffect, useState } from "react";
 import PaperCard from "@/components/ResearchPapers/PaperCard";
-import { Paper, Challenge } from "@/types";
+import { useResearchContext } from "@/lib/ResearchContext";
+import { Paper } from "@/types";
 
 interface ResearchPapersListProps {
-  challenge: Challenge;
   onClose: () => void;
 }
 
 export default function ResearchPapersList({
-  challenge,
   onClose,
 }: ResearchPapersListProps) {
-  const [papers, setPapers] = useState<Paper[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { selectedChallenge, papers, setPapers, lastFetchedChallenge, setLastFetchedChallenge } = useResearchContext();
 
   useEffect(() => {
+    console.log("Selected challenge: " + selectedChallenge?.name);
+    console.log("last: " + lastFetchedChallenge?.name);
+    if (!selectedChallenge || selectedChallenge === lastFetchedChallenge) return;
+    
+    setLoading(true);
+    setPapers([]);
+    setLastFetchedChallenge(selectedChallenge);
+
     const controller = new AbortController();
 
     const fetchPapers = async () => {
-      setLoading(true);
-      setPapers([]);
 
       try {
         const response = await fetch(
@@ -33,7 +38,7 @@ export default function ResearchPapersList({
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              query: challenge.name,
+              query: selectedChallenge.name,
               top_k: 3,
             }),
             signal: controller.signal,
@@ -49,10 +54,12 @@ export default function ResearchPapersList({
           throw new Error("No response body");
         }
 
+        let accumulatedPapers: Paper[] = [];
+
         // Read the stream
         while (true) {
           const { done, value } = await reader.read();
-          console.log("done", done);
+
           if (done) break;
 
           // Convert the chunk to text
@@ -67,25 +74,17 @@ export default function ResearchPapersList({
             const data = JSON.parse(message.replace(/^data: /, ""));
             console.log("data", data);
             if (data.type === "initial") {
-              setPapers(data.papers);
+              accumulatedPapers = data.papers;
+              setPapers(accumulatedPapers);
               setLoading(false);
             } else if (data.type === "author_details") {
-              setPapers((currentPapers) =>
-                currentPapers.map((paper) => ({
+              setPapers((prevPapers) =>
+                prevPapers.map((paper) => ({
                   ...paper,
-                  authors: paper.authors.map((author) => {
-                    const authorUpdates = data.updates[author.openAlexid];
-                    if (authorUpdates) {
-                      return {
-                        ...author,
-                        dob: authorUpdates.dob,
-                        grants: authorUpdates.grants,
-                        grant_org_name: authorUpdates.grant_org_name,
-                        website: authorUpdates.website,
-                      };
-                    }
-                    return author;
-                  }),
+                  authors: paper.authors.map((author) => ({
+                    ...author,
+                    ...(data.updates[author.openAlexid] || {}),
+                  })),
                 }))
               );
             }
@@ -107,7 +106,7 @@ export default function ResearchPapersList({
     return () => {
       controller.abort();
     };
-  }, [challenge]);
+  }, [selectedChallenge]);
 
   return (
     <div className="relative container mx-auto bg-green-50 min-h-screen">

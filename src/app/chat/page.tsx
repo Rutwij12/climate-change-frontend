@@ -5,10 +5,10 @@ import { motion } from "framer-motion";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import ClimateChat from "@/components/ChatPanes/ClimateChatContent";
 import ResearchPaperList from "@/components/ChatPanes/ResearchPapersList";
-import { Challenge } from "@/types";
+import { useResearchContext } from "@/lib/ResearchContext";
 
 export default function ChatWithResearch() {
-  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
+  const { selectedChallenge, setSelectedChallenge } = useResearchContext();
   const [leftPaneWidth, setLeftPaneWidth] = useState(50);
   const [isResizing, setIsResizing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true); // Track sidebar state
@@ -77,7 +77,6 @@ export default function ChatWithResearch() {
             transition={{ duration: 0.5 }}
           >
             <ResearchPaperList
-              challenge={selectedChallenge}
               onClose={() => setSelectedChallenge(null)}
             />
           </motion.div>
