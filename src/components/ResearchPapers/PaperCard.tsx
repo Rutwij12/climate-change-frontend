@@ -8,6 +8,7 @@ import type { Paper } from "@/types"
 import { motion, AnimatePresence } from "framer-motion"
 import AuthorCard from "./AuthorCard"
 import { useResearchContext } from "@/lib/ResearchContext"
+import axios from "axios"
 
 export default function PaperCard({ paper }: { paper: Paper | undefined }) {
   const { paperStates, updatePaperState } = useResearchContext();
@@ -49,6 +50,55 @@ export default function PaperCard({ paper }: { paper: Paper | undefined }) {
       removedAuthors: { ...removedAuthors, [authorName]: true },
     });
   };
+
+  // TODO: merge changes
+  // const addAuthor = async (authorName: string) => {
+  //   try {
+  //     await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authors/feedback`, {
+  //       paper: paper,
+  //       author_name: authorName,
+  //       accepted: true,
+  //     });
+  //     setAddedAuthors((prev) => ({
+  //       ...prev,
+  //       [authorName]: true,
+  //     }));
+  //   } catch (error) {
+  //     if (axios.isAxiosError(error)) {
+  //       console.error("Error sending author feedback:", error.response?.data || error.message)
+  //     } else {
+  //       console.error("Unexpected error:", error)
+  //     }
+  //   }
+  //   setAddedAuthors((prev) => ({
+  //     ...prev,
+  //     [authorName]: true,
+  //   }));
+  // }
+
+  // const removeAuthor = async (authorName: string) => {
+  //   try {
+  //     await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authors/feedback`, {
+  //       paper: paper,
+  //       author_name: authorName,
+  //       accepted: false,
+  //     });
+  //     setRemovedAuthors((prev) => ({
+  //       ...prev,
+  //       [authorName]: true,
+  //     }));
+  //   } catch (error) {
+  //     if (axios.isAxiosError(error)) {
+  //       console.error("Error sending author feedback:", error.response?.data || error.message)
+  //     } else {
+  //       console.error("Unexpected error:", error)
+  //     }
+  //   }
+  //   setRemovedAuthors((prev) => ({
+  //     ...prev,
+  //     [authorName]: true,
+  //   }));
+  // }
 
   const restoreAuthors = () => {
     updatePaperState(paperId, { removedAuthors: {} });
