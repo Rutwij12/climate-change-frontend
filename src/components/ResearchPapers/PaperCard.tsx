@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React from "react"
 import { ChevronDown, ChevronUp, RefreshCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -53,58 +53,6 @@ export default function PaperCard({ paper }: { paper: Paper | undefined }) {
   const restoreAuthors = () => {
     updatePaperState(paperId, { removedAuthors: {} });
   };
-
-  // const addAuthor = async (authorName: string) => {
-  //   // try {
-  //   //   await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authors/feedback`, {
-  //   //     paper: paper,
-  //   //     author_name: authorName,
-  //   //     accepted: true,
-  //   //   });
-  //   //   setAddedAuthors((prev) => ({
-  //   //     ...prev,
-  //   //     [authorName]: true,
-  //   //   }));
-  //   // } catch (error) {
-  //   //   if (axios.isAxiosError(error)) {
-  //   //     console.error("Error sending author feedback:", error.response?.data || error.message)
-  //   //   } else {
-  //   //     console.error("Unexpected error:", error)
-  //   //   }
-  //   // }
-  //   setAddedAuthors((prev) => ({
-  //     ...prev,
-  //     [authorName]: true,
-  //   }));
-  // }
-
-  // const removeAuthor = async (authorName: string) => {
-  //   // try {
-  //   //   await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authors/feedback`, {
-  //   //     paper: paper,
-  //   //     author_name: authorName,
-  //   //     accepted: false,
-  //   //   });
-  //   //   setRemovedAuthors((prev) => ({
-  //   //     ...prev,
-  //   //     [authorName]: true,
-  //   //   }));
-  //   // } catch (error) {
-  //   //   if (axios.isAxiosError(error)) {
-  //   //     console.error("Error sending author feedback:", error.response?.data || error.message)
-  //   //   } else {
-  //   //     console.error("Unexpected error:", error)
-  //   //   }
-  //   // }
-  //   setRemovedAuthors((prev) => ({
-  //     ...prev,
-  //     [authorName]: true,
-  //   }));
-  // }
-
-  // const restoreAuthors = () => {
-  //   setRemovedAuthors({})
-  // }
 
   return (
     <Card className="mb-4 border-green-200 hover:border-green-400 transition-colors overflow-hidden">
@@ -184,3 +132,51 @@ export default function PaperCard({ paper }: { paper: Paper | undefined }) {
     </Card>
   )
 }
+
+// const addAuthor = async (authorName: string) => {
+  //   // try {
+  //   //   await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authors/feedback`, {
+  //   //     paper: paper,
+  //   //     author_name: authorName,
+  //   //     accepted: true,
+  //   //   });
+  //   //   setAddedAuthors((prev) => ({
+  //   //     ...prev,
+  //   //     [authorName]: true,
+  //   //   }));
+  //   // } catch (error) {
+  //   //   if (axios.isAxiosError(error)) {
+  //   //     console.error("Error sending author feedback:", error.response?.data || error.message)
+  //   //   } else {
+  //   //     console.error("Unexpected error:", error)
+  //   //   }
+  //   // }
+  //   setAddedAuthors((prev) => ({
+  //     ...prev,
+  //     [authorName]: true,
+  //   }));
+  // }
+
+  // const removeAuthor = async (authorName: string) => {
+  //   // try {
+  //   //   await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authors/feedback`, {
+  //   //     paper: paper,
+  //   //     author_name: authorName,
+  //   //     accepted: false,
+  //   //   });
+  //   //   setRemovedAuthors((prev) => ({
+  //   //     ...prev,
+  //   //     [authorName]: true,
+  //   //   }));
+  //   // } catch (error) {
+  //   //   if (axios.isAxiosError(error)) {
+  //   //     console.error("Error sending author feedback:", error.response?.data || error.message)
+  //   //   } else {
+  //   //     console.error("Unexpected error:", error)
+  //   //   }
+  //   // }
+  //   setRemovedAuthors((prev) => ({
+  //     ...prev,
+  //     [authorName]: true,
+  //   }));
+  // }
