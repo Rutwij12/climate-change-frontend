@@ -37,7 +37,7 @@ export default function AuthorCard({
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/crm/authors`,
         {
           name: author.name,
-          institution: author.organisation_history?.[0] ?? "Unknown",
+          institution: author.organisation_history || "Unknown",
           note: author.grants?.join(", ") ?? null,
           openalex_id: author.openAlexid || "",
           user_email: localStorage.getItem("user_email") ?? "unknown",

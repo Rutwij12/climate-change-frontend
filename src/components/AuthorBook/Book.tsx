@@ -59,7 +59,7 @@ export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus, 
           {authors.map((author) => (
             <TableRow key={author.id} className="hover:bg-emerald-50">
               <TableCell className="font-medium text-center text-base">{author.name}</TableCell>
-              <TableCell className="text-center text-base">{author.institution}</TableCell>
+              <TableCell className="text-center text-base">{(author.institution).split(",")[0].trim()}</TableCell>
               <TableCell className="text-center">
                 <Textarea
                   value={author.note}

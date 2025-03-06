@@ -7,13 +7,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import type { Paper } from "@/types"
 import { motion, AnimatePresence } from "framer-motion"
 import AuthorCard from "./AuthorCard"
-// import axios from "axios"
+import { useResearchContext } from "@/lib/ResearchContext"
 
 export default function PaperCard({ paper }: { paper: Paper | undefined }) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [showAuthors, setShowAuthors] = useState(false)
-  const [addedAuthors, setAddedAuthors] = useState<Record<string, boolean>>({})
-  const [removedAuthors, setRemovedAuthors] = useState<Record<string, boolean>>({})
+  const { paperStates, updatePaperState } = useResearchContext();
 
   if (!paper) {
     return (
@@ -23,67 +20,98 @@ export default function PaperCard({ paper }: { paper: Paper | undefined }) {
     )
   }
 
-  const addAuthor = async (authorName: string) => {
-    // try {
-    //   await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authors/feedback`, {
-    //     paper: paper,
-    //     author_name: authorName,
-    //     accepted: true,
-    //   });
-    //   setAddedAuthors((prev) => ({
-    //     ...prev,
-    //     [authorName]: true,
-    //   }));
-    // } catch (error) {
-    //   if (axios.isAxiosError(error)) {
-    //     console.error("Error sending author feedback:", error.response?.data || error.message)
-    //   } else {
-    //     console.error("Unexpected error:", error)
-    //   }
-    // }
-    setAddedAuthors((prev) => ({
-      ...prev,
-      [authorName]: true,
-    }));
-  }
+  const paperId = paper.openalex_id;
 
-  const removeAuthor = async (authorName: string) => {
-    // try {
-    //   await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authors/feedback`, {
-    //     paper: paper,
-    //     author_name: authorName,
-    //     accepted: false,
-    //   });
-    //   setRemovedAuthors((prev) => ({
-    //     ...prev,
-    //     [authorName]: true,
-    //   }));
-    // } catch (error) {
-    //   if (axios.isAxiosError(error)) {
-    //     console.error("Error sending author feedback:", error.response?.data || error.message)
-    //   } else {
-    //     console.error("Unexpected error:", error)
-    //   }
-    // }
-    setRemovedAuthors((prev) => ({
-      ...prev,
-      [authorName]: true,
-    }));
-  }
+  const {
+    isExpanded = false,
+    showAuthors = false,
+    addedAuthors = {},
+    removedAuthors = {},
+  } = paperStates[paperId] || {};
+
+  const toggleExpand = () => {
+    updatePaperState(paperId, { isExpanded: !isExpanded });
+    updatePaperState(paperId, { showAuthors: false });
+  };
+
+  const toggleShowAuthors = () => {
+    updatePaperState(paperId, { showAuthors: !showAuthors });
+  };
+
+  const addAuthor = async (authorName: string): Promise<void> => {
+    updatePaperState(paperId, {
+      addedAuthors: { ...addedAuthors, [authorName]: true },
+    });
+  };
+
+  const removeAuthor = async (authorName: string): Promise<void> => {
+    updatePaperState(paperId, {
+      removedAuthors: { ...removedAuthors, [authorName]: true },
+    });
+  };
 
   const restoreAuthors = () => {
-    setRemovedAuthors({})
-  }
+    updatePaperState(paperId, { removedAuthors: {} });
+  };
+
+  // const addAuthor = async (authorName: string) => {
+  //   // try {
+  //   //   await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authors/feedback`, {
+  //   //     paper: paper,
+  //   //     author_name: authorName,
+  //   //     accepted: true,
+  //   //   });
+  //   //   setAddedAuthors((prev) => ({
+  //   //     ...prev,
+  //   //     [authorName]: true,
+  //   //   }));
+  //   // } catch (error) {
+  //   //   if (axios.isAxiosError(error)) {
+  //   //     console.error("Error sending author feedback:", error.response?.data || error.message)
+  //   //   } else {
+  //   //     console.error("Unexpected error:", error)
+  //   //   }
+  //   // }
+  //   setAddedAuthors((prev) => ({
+  //     ...prev,
+  //     [authorName]: true,
+  //   }));
+  // }
+
+  // const removeAuthor = async (authorName: string) => {
+  //   // try {
+  //   //   await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authors/feedback`, {
+  //   //     paper: paper,
+  //   //     author_name: authorName,
+  //   //     accepted: false,
+  //   //   });
+  //   //   setRemovedAuthors((prev) => ({
+  //   //     ...prev,
+  //   //     [authorName]: true,
+  //   //   }));
+  //   // } catch (error) {
+  //   //   if (axios.isAxiosError(error)) {
+  //   //     console.error("Error sending author feedback:", error.response?.data || error.message)
+  //   //   } else {
+  //   //     console.error("Unexpected error:", error)
+  //   //   }
+  //   // }
+  //   setRemovedAuthors((prev) => ({
+  //     ...prev,
+  //     [authorName]: true,
+  //   }));
+  // }
+
+  // const restoreAuthors = () => {
+  //   setRemovedAuthors({})
+  // }
 
   return (
     <Card className="mb-4 border-green-200 hover:border-green-400 transition-colors overflow-hidden">
       <CardContent className="p-4">
         <div 
           className="flex justify-between items-center w-full cursor-pointer" 
-          onClick={() => {
-            setIsExpanded(!isExpanded);
-            if (isExpanded) setShowAuthors(false); // Hide authors when collapsing
-          }}
+          onClick={toggleExpand}
         >
           <h2 className="text-xl font-semibold text-green-700 flex-1">{paper.title}</h2>
           <div className="flex justify-end w-10">
@@ -102,7 +130,7 @@ export default function PaperCard({ paper }: { paper: Paper | undefined }) {
             >
               <div className="mt-4">
                 <p className="text-green-800 mb-4">{paper.abstract}</p>
-                <Button size="sm" className="mr-2" onClick={() => setShowAuthors(!showAuthors)}>
+                <Button size="sm" className="mr-2" onClick={toggleShowAuthors}>
                   {showAuthors ? "Hide Authors" : "See Authors"}
                 </Button>
               </div>
