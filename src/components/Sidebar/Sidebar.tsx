@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Menu, X, MessageSquarePlus, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -16,23 +16,32 @@ function ChatHistoryItem({ chatId, title }: { chatId: number; title: string }) {
   const { fetchChatMessages } = useChatContext();
   const { setSelectedChallenge } = useResearchContext();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    setSelectedChallenge(null);
+
+    await fetchChatMessages(chatId); // Ensure it completes before navigating
+
+    setLoading(false);
+    router.push("/chat");
+  };
 
   return (
     <button
-      onClick={() => {
-        // Clear challenge while switching between chat history items
-        setSelectedChallenge(null);
-        
-        // First fetch the chat messages
-        fetchChatMessages(chatId);
-        
-        // Then navigate to the chat page
-        router.push("/chat");
-        }
-      }
-      className="w-full text-left bg-emerald-700 hover:bg-emerald-600 text-white py-2 px-4 rounded-md shadow-md mb-2 overflow-hidden text-ellipsis whitespace-nowrap"
+    onClick={handleClick}
+    className="w-full text-left bg-emerald-700 hover:bg-emerald-600 text-white py-2 px-4 rounded-md shadow-md mb-2 overflow-hidden text-ellipsis whitespace-nowrap flex items-center justify-center"
+    disabled={loading} // Prevent multiple clicks while loading
     >
+    {loading ? (
+      <div className="flex flex-col items-center">
+        <p className="block">Loading chat...</p>
+        <div className="w-5 h-5 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    ) : (
       <span className="block truncate">{title}</span>
+    )}
     </button>
   );
 }
