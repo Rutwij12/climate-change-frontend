@@ -29,10 +29,12 @@ const GoogleSignInButton: React.FC = () => {
   };
 
   return (
-    <GoogleLogin
-      onSuccess={handleSuccess}
-      onError={handleError}
-    />
+    <div style={{transform: 'scale(1.2)'}}>
+      <GoogleLogin
+        onSuccess={handleSuccess}
+        onError={handleError}
+      />
+    </div>
   );
 };
 

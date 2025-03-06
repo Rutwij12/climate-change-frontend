@@ -6,6 +6,7 @@ import AuthOption from "@/components/AuthOption";
 import SignInForm from "@/components/SignInForm";
 import SignUpForm from "@/components/SignUpForm";
 import { Card, CardContent } from "@/components/ui/card";
+import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState<boolean>(true);
@@ -21,13 +22,14 @@ export default function AuthPage() {
         </div>
 
         <div className="grid gap-8 w-full">
+          <GoogleSignInButton />
           <Card className="w-full">
             <CardContent className="p-8">
               <AuthOption title="Sign In" isActive={isLogin} onClick={() => setIsLogin(true)} />
               {isLogin && <SignInForm />}
             </CardContent>
           </Card>
-
+          
           <Card className="w-full">
             <CardContent className="p-8">
               <AuthOption title="Create Account" isActive={!isLogin} onClick={() => setIsLogin(false)} />

@@ -405,6 +405,7 @@ function GraphPageContent() {
   const searchParams = useSearchParams();
   const authorid = searchParams.get("authorid") || "";
   const paperid = searchParams.get("paperid") || "";
+  const hasPaperId = !!paperid;
 
   const [loading, setLoading] = useState<boolean>(true);
   const [initialConnectionsLoading, setInitialConnectionsLoading] =
@@ -667,17 +668,22 @@ function GraphPageContent() {
         // First fetch the regular NVL data
         await fetchNvlData("coauthor_network");
 
-        setInitialConnectionsLoading(true);
-        const response = await axios.post<{ connections: InitialConnection[] }>(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_initial_connections`,
-          { authorid, paperid }
-        );
+        // Only fetch dynamic graph data if paperid is present
+        if (hasPaperId) {
+          setInitialConnectionsLoading(true);
+          const response = await axios.post<{
+            connections: InitialConnection[];
+          }>(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/graph/get_initial_connections`,
+            { authorid, paperid }
+          );
 
-        const nvlData = await convertInitialConnectionsToNvl(
-          authorid,
-          response.data.connections
-        );
-        setDynamicNvlData(nvlData);
+          const nvlData = await convertInitialConnectionsToNvl(
+            authorid,
+            response.data.connections
+          );
+          setDynamicNvlData(nvlData);
+        }
       } catch (error) {
         console.error("Error fetching initial graph data:", error);
         if (error instanceof Error) {
@@ -698,7 +704,7 @@ function GraphPageContent() {
       setLoading(false);
       setInitialConnectionsLoading(false);
     }
-  }, [authorid, paperid]);
+  }, [authorid, paperid, hasPaperId]);
 
   const fetchNvlData = async (endpoint: string) => {
     try {
@@ -1312,7 +1318,10 @@ function GraphPageContent() {
     }
   };
 
-  if (loading || (activeTab === "dynamic" && initialConnectionsLoading))
+  if (
+    loading ||
+    (activeTab === "dynamic" && initialConnectionsLoading && hasPaperId)
+  )
     return (
       <div className="flex items-center justify-center min-h-screen">
         <svg
@@ -1339,7 +1348,7 @@ function GraphPageContent() {
     );
 
   if (error) return <div>Error: {error}</div>;
-  if (activeTab === "dynamic" && !dynamicNvlData)
+  if (activeTab === "dynamic" && !dynamicNvlData && hasPaperId)
     return <div>No graph data available.</div>;
   if (activeTab !== "dynamic" && !nvlData)
     return <div>No graph data available.</div>;
@@ -1355,26 +1364,31 @@ function GraphPageContent() {
             { id: "coauthor", name: "Co-author Network" },
             { id: "topic", name: "Topic Network" },
             { id: "research", name: "Research Topics" },
-            {
-              id: "dynamic",
-              name: "Dynamic Graph",
-              icon: (
-                <svg
-                  className="w-4 h-4 mr-2 inline-block"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-              ),
-            },
+            // Only include dynamic tab if paperid is present
+            ...(hasPaperId
+              ? [
+                  {
+                    id: "dynamic",
+                    name: "Dynamic Graph",
+                    icon: (
+                      <svg
+                        className="w-4 h-4 mr-2 inline-block"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+                    ),
+                  },
+                ]
+              : []),
             {
               id: "natural",
               name: "AI Assistant",
@@ -1420,8 +1434,8 @@ function GraphPageContent() {
         {/* Main graph area with info panel */}
         <div className="flex flex-col flex-1">
           <div className="flex-1 min-h-0">
-            {/* Dynamic graph */}
-            {activeTab === "dynamic" && dynamicNvlData && (
+            {/* Dynamic graph - only show if paperid is present */}
+            {activeTab === "dynamic" && hasPaperId && dynamicNvlData && (
               <InteractiveNvlWrapper
                 nodes={dynamicNvlData.nodes}
                 rels={dynamicNvlData.rels}
@@ -1480,7 +1494,7 @@ function GraphPageContent() {
           </div>
 
           {/* Info Panels */}
-          {activeTab === "dynamic"
+          {activeTab === "dynamic" && hasPaperId
             ? // Dynamic graph author info panel
               (selectedAuthorInfo || authorInfoLoading) && (
                 <div className="mt-4">
