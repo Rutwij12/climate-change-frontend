@@ -1,20 +1,9 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import type { Node as NVLNode, Relationship } from "@neo4j-nvl/base";
-import {
-  User,
-  Briefcase,
-  Link2,
-  Hash,
-  BookOpen,
-  FileText,
-  Award,
-  MapPin,
-  Calendar,
-} from "lucide-react";
 import { Suspense } from "react";
 import { NaturalLanguageSidebar } from "@/components/graph/NaturalLanguageSidebar";
 import { AuthorInfoPanel } from "@/components/graph/AuthorInfoPanel";
@@ -26,7 +15,6 @@ import {
 } from "@/utils/graphUtils";
 
 type TabType = "coauthor" | "topic" | "research" | "natural" | "dynamic";
-type NodeType = "author" | "work" | "institution" | "topic";
 
 // Add custom interfaces for NVL types that aren't properly typed
 interface NVLNodeProperties {
@@ -42,14 +30,6 @@ interface NVLNodeProperties {
   orcid?: string;
   country?: string;
   [key: string]: any; // Allow additional properties since NVL nodes can have varying data
-}
-
-interface NVLRelationshipProperties {
-  relationType: string;
-  authorPosition?: string;
-  score?: number;
-  paperCount?: number;
-  [key: string]: any;
 }
 
 // Add new interfaces for type safety
@@ -90,13 +70,6 @@ interface AuthorInfo {
   };
   // Add any other properties that might come from your API
   [key: string]: any;
-}
-
-// Define the AuthorInfoPanel props interface
-interface AuthorInfoPanelProps {
-  authorInfo: AuthorInfo | null;
-  loading: boolean;
-  onClose: () => void;
 }
 
 // Create a wrapper component that uses useSearchParams

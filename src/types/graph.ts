@@ -1,5 +1,3 @@
-import type { Node as NVLNode, Relationship } from "@neo4j-nvl/base";
-
 export type TabType = "coauthor" | "topic" | "research" | "natural" | "dynamic";
 export type NodeType = "author" | "work" | "institution" | "topic";
 
