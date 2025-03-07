@@ -55,8 +55,10 @@ export default function Sidebar({
 }) {
   const router = useRouter();
   const { chatHistory, createNewChat } = useChatContext();
+  const { setSelectedChallenge } = useResearchContext();
 
   const handleNewChat = () => {
+    setSelectedChallenge(null);
     createNewChat();
     router.push('/chat');
   };
