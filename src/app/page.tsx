@@ -35,6 +35,11 @@ export default function Home() {
         setHasCheckedAuth(true);
         router.refresh();
       }
+      const refreshed = localStorage.getItem("refreshed");
+      if (!refreshed) {
+        localStorage.setItem("refreshed", "true");
+        router.refresh();
+      }
     }
 
     if (input) return; // Stop auto-typing when user starts typing
