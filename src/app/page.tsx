@@ -38,7 +38,7 @@ export default function Home() {
       const refreshed = localStorage.getItem("refreshed");
       if (!refreshed) {
         localStorage.setItem("refreshed", "true");
-        router.refresh();
+        window.location.reload()
       }
     }
 
