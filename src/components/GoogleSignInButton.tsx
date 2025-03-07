@@ -30,6 +30,7 @@ const GoogleSignInButton: React.FC = () => {
       }
         
       router.push('/');
+      router.refresh();
     }
   };
 
