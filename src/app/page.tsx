@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useChatContext } from "@/lib/ChatContent";
 import Sidebar from "@/components/Sidebar/Sidebar";
+import { useResearchContext } from "@/lib/ResearchContext";
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -66,6 +67,8 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, [charIndex, isDeleting, currentExampleIndex, input, router, hasCheckedAuth]);
 
+  const { setSelectedChallenge } = useResearchContext();
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const isAuthenticated = localStorage.getItem('user_email');
@@ -76,6 +79,7 @@ export default function Home() {
       return;
     }
     if (input.trim()) {
+      setSelectedChallenge(null);
       router.push("/chat");
       await createNewMessages(input.trim());
       setInput(""); // Clear the input
