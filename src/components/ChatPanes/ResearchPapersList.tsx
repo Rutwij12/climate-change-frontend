@@ -14,13 +14,20 @@ export default function ResearchPapersList({
 }: ResearchPapersListProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { selectedChallenge, papers, setPapers, lastFetchedChallenge, setLastFetchedChallenge } = useResearchContext();
+  const {
+    selectedChallenge,
+    papers,
+    setPapers,
+    lastFetchedChallenge,
+    setLastFetchedChallenge,
+  } = useResearchContext();
 
   useEffect(() => {
     console.log("Selected challenge: " + selectedChallenge?.name);
     console.log("last: " + lastFetchedChallenge?.name);
-    if (!selectedChallenge || selectedChallenge === lastFetchedChallenge) return;
-    
+    if (!selectedChallenge || selectedChallenge === lastFetchedChallenge)
+      return;
+
     setLoading(true);
     setPapers([]);
     setLastFetchedChallenge(selectedChallenge);
@@ -28,7 +35,6 @@ export default function ResearchPapersList({
     const controller = new AbortController();
 
     const fetchPapers = async () => {
-
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/papers/search`,
@@ -55,6 +61,7 @@ export default function ResearchPapersList({
         }
 
         let accumulatedPapers: Paper[] = [];
+        let buffer = ""; // Add a buffer to handle incomplete JSON chunks
 
         // Read the stream
         while (true) {
@@ -62,31 +69,39 @@ export default function ResearchPapersList({
 
           if (done) break;
 
-          // Convert the chunk to text
-          const chunk = new TextDecoder().decode(value);
-          console.log("chunk", chunk);
-          // Split by double newlines to get individual SSE messages
-          const messages = chunk.split("\n\n");
+          // Convert the chunk to text and add to buffer
+          buffer += new TextDecoder().decode(value);
+
+          // Process complete messages in the buffer
+          const messages = buffer.split("\n\n");
+          // Keep the last potentially incomplete message in the buffer
+          buffer = messages.pop() || "";
+
           for (const message of messages) {
             if (!message.trim()) continue;
 
-            // Remove "data: " prefix and parse JSON
-            const data = JSON.parse(message.replace(/^data: /, ""));
-            console.log("data", data);
-            if (data.type === "initial") {
-              accumulatedPapers = data.papers;
-              setPapers(accumulatedPapers);
-              setLoading(false);
-            } else if (data.type === "author_details") {
-              setPapers((prevPapers) =>
-                prevPapers.map((paper) => ({
-                  ...paper,
-                  authors: paper.authors.map((author) => ({
-                    ...author,
-                    ...(data.updates[author.openAlexid] || {}),
-                  })),
-                }))
-              );
+            try {
+              // Remove "data: " prefix and parse JSON
+              const data = JSON.parse(message.replace(/^data: /, ""));
+
+              if (data.type === "initial") {
+                accumulatedPapers = data.papers;
+                setPapers(accumulatedPapers);
+                setLoading(false);
+              } else if (data.type === "author_details") {
+                setPapers((prevPapers) =>
+                  prevPapers.map((paper) => ({
+                    ...paper,
+                    authors: paper.authors.map((author) => ({
+                      ...author,
+                      ...(data.updates[author.openAlexid] || {}),
+                    })),
+                  }))
+                );
+              }
+            } catch (parseError) {
+              console.error("Error parsing JSON:", parseError);
+              // Continue processing other messages even if one fails
             }
           }
         }
