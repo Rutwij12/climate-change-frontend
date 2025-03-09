@@ -77,8 +77,8 @@ export default function Home() {
       return;
     }
     if (input.trim()) {
-      createNewChat();
-      setSelectedChallenge(null);
+      await createNewChat();
+      await setSelectedChallenge(null);
       router.push("/chat");
       await createNewMessages(input.trim());
       setInput(""); // Clear the input
