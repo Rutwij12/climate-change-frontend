@@ -12,7 +12,11 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin-allow-popups'
+            value: 'cross-origin'
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
           }
         ],
       }
