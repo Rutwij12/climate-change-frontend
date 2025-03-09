@@ -9,7 +9,7 @@ import { useResearchContext } from "@/lib/ResearchContext";
 
 export default function Home() {
   const [input, setInput] = useState("");
-  const { createNewMessages } = useChatContext();
+  const { createNewMessages, createNewChat } = useChatContext();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
@@ -72,14 +72,13 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const isAuthenticated = localStorage.getItem('user_email');
-    console.log(isAuthenticated);
-    console.log(!isAuthenticated);
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     if (input.trim()) {
-      setSelectedChallenge(null);
+      await createNewChat();
+      await setSelectedChallenge(null);
       router.push("/chat");
       await createNewMessages(input.trim());
       setInput(""); // Clear the input
