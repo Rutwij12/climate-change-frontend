@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AuthorCRM, Status } from "@/types";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 
 const statusConfig: Record<string, string> = {
   uncontacted: "bg-gray-200 hover:bg-gray-300 text-gray-700",
@@ -42,6 +43,7 @@ interface BookComponentProps {
 
 export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus, onDeleteAuthor }: BookComponentProps) {
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const router = useRouter();
 
   return (
     <div className="rounded-lg border border-emerald-300 overflow-hidden shadow-md">
@@ -58,7 +60,18 @@ export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus, 
         <TableBody>
           {authors.map((author) => (
             <TableRow key={author.id} className="hover:bg-emerald-50">
-              <TableCell className="font-medium text-center text-base">{author.name}</TableCell>
+              <TableCell className="font-medium text-center text-base">
+                <Button
+                  className="text-emerald-700 underline hover:text-emerald-900"
+                  variant="link"
+                  onClick={() => {
+                    const author_id = author.openalex_id;
+                    router.push(`/graph?authorid=${author_id}`);
+                  }}
+                >
+                  {author.name}
+                </Button>
+              </TableCell>
               <TableCell className="text-center text-base">{(author.institution).split(",")[0].trim()}</TableCell>
               <TableCell className="text-center">
                 <Textarea
