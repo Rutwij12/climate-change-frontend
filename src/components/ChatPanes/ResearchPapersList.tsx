@@ -39,7 +39,7 @@ export default function ResearchPapersList({
             },
             body: JSON.stringify({
               query: selectedChallenge.name,
-              top_k: 3,
+              top_k: 10,
             }),
             signal: controller.signal,
           }
