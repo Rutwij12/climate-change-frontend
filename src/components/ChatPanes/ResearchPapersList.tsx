@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import PaperCard from "@/components/ResearchPapers/PaperCard";
 import { useResearchContext } from "@/lib/ResearchContext";
-import { Paper } from "@/types";
 
 interface ResearchPapersListProps {
   onClose: () => void;
