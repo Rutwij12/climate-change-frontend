@@ -85,6 +85,7 @@ export default function ResearchPapersList({
               const data = JSON.parse(message.replace(/^data: /, ""));
 
               if (data.type === "initial") {
+                console.log("initial data released: ", data.papers);
                 accumulatedPapers = data.papers;
                 setPapers(accumulatedPapers);
                 setLoading(false);
