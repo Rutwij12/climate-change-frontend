@@ -61,7 +61,6 @@ export default function ResearchPapersList({
         }
 
         let accumulatedPapers: Paper[] = [];
-        let buffer = ""; // Add a buffer to handle incomplete JSON chunks
 
         // Read the stream
         while (true) {
@@ -69,40 +68,31 @@ export default function ResearchPapersList({
 
           if (done) break;
 
-          // Convert the chunk to text and add to buffer
-          buffer += new TextDecoder().decode(value);
-
-          // Process complete messages in the buffer
-          const messages = buffer.split("\n\n");
-          // Keep the last potentially incomplete message in the buffer
-          buffer = messages.pop() || "";
-
+          // Convert the chunk to text
+          const chunk = new TextDecoder().decode(value);
+          console.log("chunk", chunk);
+          // Split by double newlines to get individual SSE messages
+          const messages = chunk.split("\n\n");
           for (const message of messages) {
             if (!message.trim()) continue;
 
-            try {
-              // Remove "data: " prefix and parse JSON
-              const data = JSON.parse(message.replace(/^data: /, ""));
-
-              if (data.type === "initial") {
-                console.log("initial data released: ", data.papers);
-                accumulatedPapers = data.papers;
-                setPapers(accumulatedPapers);
-                setLoading(false);
-              } else if (data.type === "author_details") {
-                setPapers((prevPapers) =>
-                  prevPapers.map((paper) => ({
-                    ...paper,
-                    authors: paper.authors.map((author) => ({
-                      ...author,
-                      ...(data.updates[author.openAlexid] || {}),
-                    })),
-                  }))
-                );
-              }
-            } catch (parseError) {
-              console.error("Error parsing JSON:", parseError);
-              // Continue processing other messages even if one fails
+            // Remove "data: " prefix and parse JSON
+            const data = JSON.parse(message.replace(/^data: /, ""));
+            console.log("data", data);
+            if (data.type === "initial") {
+              accumulatedPapers = data.papers;
+              setPapers(accumulatedPapers);
+              setLoading(false);
+            } else if (data.type === "author_details") {
+              setPapers((prevPapers) =>
+                prevPapers.map((paper) => ({
+                  ...paper,
+                  authors: paper.authors.map((author) => ({
+                    ...author,
+                    ...(data.updates[author.openAlexid] || {}),
+                  })),
+                }))
+              );
             }
           }
         }
