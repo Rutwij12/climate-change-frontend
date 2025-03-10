@@ -19,9 +19,9 @@ interface ChatContextType {
   messages: ChatMessage_T[];
   query: string;
   setQuery: React.Dispatch<React.SetStateAction<string>>;
-  createNewMessages: (content: string) => Promise<void>;
+  createNewMessages: (content: string, chatId?: number) => Promise<void>;
   fetchChatMessages: (chatId: number) => Promise<void>;
-  createNewChat: () => Promise<void>;
+  createNewChat: () => Promise<number>;
 }
 
 // Create the context
@@ -85,8 +85,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     const fetchChatHistory = async () => {
       try {
         const response = await axios.get<ChatHistory[]>(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`, {
-            params: {user_email: localStorage.getItem("user_email") ?? "unknown"}
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`,
+          {
+            params: {
+              user_email: localStorage.getItem("user_email") ?? "unknown",
+            },
           }
         );
         setChatHistory(response.data);
@@ -102,14 +105,19 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const createNewChat = async () => {
     try {
       const user_email = localStorage.getItem("user_email") ?? "unknown";
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/chat`, {
-        user_email: user_email
-      });
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/chat`,
+        {
+          user_email: user_email,
+        }
+      );
       const newChatId: number = response.data.id;
       setMessages([]);
       setChatId(newChatId); // Save new chat ID in global state
+      return newChatId; // Return the new chat ID
     } catch (error) {
       console.error("Failed to create new chat:", error);
+      throw error; // Propagate the error
     }
   };
 
@@ -119,8 +127,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       const response = await axios.get<ChatHistoryMessage[]>(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/messages`
       );
-      
-      const formattedMessages : ChatMessage_T[] = response.data.map((msg) => {
+
+      const formattedMessages: ChatMessage_T[] = response.data.map((msg) => {
         if (msg.user_message) {
           // User message: store content directly
           return {
@@ -144,7 +152,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const createNewMessages = async (content: string) => {
+  const createNewMessages = async (
+    content: string,
+    specificChatId?: number
+  ) => {
     const userMessage: ChatMessage_T = {
       id: Date.now(),
       type: "user",
@@ -165,7 +176,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       await axios({
         method: "post",
         url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reports/query`,
-        data: { query: content, chat_id: chatId?.toString() },
+        data: {
+          query: content,
+          chat_id: (specificChatId ?? chatId)?.toString(),
+        },
         responseType: "stream",
         headers: {
           Accept: "text/event-stream",

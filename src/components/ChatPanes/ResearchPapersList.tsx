@@ -28,6 +28,8 @@ export default function ResearchPapersList({
     if (!selectedChallenge || selectedChallenge === lastFetchedChallenge)
       return;
 
+    // Clear papers and set loading immediately
+    setPapers([]);
     setLoading(true);
     setPapers([]);
     setLastFetchedChallenge(selectedChallenge);
@@ -45,7 +47,7 @@ export default function ResearchPapersList({
             },
             body: JSON.stringify({
               query: selectedChallenge.name,
-              top_k: 5,
+              top_k: 10,
             }),
             signal: controller.signal,
           }
@@ -60,8 +62,7 @@ export default function ResearchPapersList({
           throw new Error("No response body");
         }
 
-        let accumulatedPapers: Paper[] = [];
-        let accumulatedChunk = ""; // Add buffer for incomplete chunks
+        let accumulatedChunk = "";
 
         // Read the stream
         while (true) {
@@ -87,9 +88,8 @@ export default function ResearchPapersList({
               const jsonStr = message.replace(/^data: /, "");
               const data = JSON.parse(jsonStr);
 
-              if (data.type === "initial") {
-                accumulatedPapers = data.papers;
-                setPapers(accumulatedPapers);
+              if (data.type === "paper") {
+                setPapers((prevPapers) => [...prevPapers, data.paper]);
                 setLoading(false);
               } else if (data.type === "author_details") {
                 setPapers((prevPapers) =>

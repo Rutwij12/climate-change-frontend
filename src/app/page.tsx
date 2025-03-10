@@ -12,7 +12,7 @@ export default function Home() {
   const { createNewMessages, createNewChat } = useChatContext();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  
+
   // Example questions to cycle through
   const exampleQuestions = [
     "What are some challenges in the aviation industry?",
@@ -20,7 +20,7 @@ export default function Home() {
     "Impact of AI on the environment",
     "Factors contributing to glacier loss",
   ];
-  
+
   const [exampleText, setExampleText] = useState("");
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
@@ -39,7 +39,7 @@ export default function Home() {
       const refreshed = localStorage.getItem("refreshed");
       if (!refreshed) {
         localStorage.setItem("refreshed", "true");
-        window.location.reload()
+        window.location.reload();
       }
     }
 
@@ -47,7 +47,7 @@ export default function Home() {
     const currentText = exampleQuestions[currentExampleIndex];
     const typeSpeed = isDeleting ? 50 : 100; // Faster delete, slower typing
     const delay = isDeleting && charIndex === 0 ? 1500 : typeSpeed; // Pause before deleting
-    
+
     const timeout = setTimeout(() => {
       if (!isDeleting && charIndex < currentText.length) {
         setExampleText((prev) => prev + currentText[charIndex]);
@@ -63,37 +63,45 @@ export default function Home() {
         setCharIndex(0);
       }
     }, delay);
-    
+
     return () => clearTimeout(timeout);
-  }, [charIndex, isDeleting, currentExampleIndex, input, router, hasCheckedAuth]);
+  }, [
+    charIndex,
+    isDeleting,
+    currentExampleIndex,
+    input,
+    router,
+    hasCheckedAuth,
+  ]);
 
   const { setSelectedChallenge } = useResearchContext();
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isAuthenticated = localStorage.getItem('user_email');
+    const isAuthenticated = localStorage.getItem("user_email");
     if (!isAuthenticated) {
-      router.push('/login');
+      router.push("/login");
       return;
     }
     if (input.trim()) {
-      await createNewChat();
+      const newChatId = await createNewChat();
       await setSelectedChallenge(null);
       router.push("/chat");
-      await createNewMessages(input.trim());
+      await createNewMessages(input.trim(), newChatId);
       setInput(""); // Clear the input
     }
   };
 
   return (
     <div className="relative flex">
-      <Sidebar 
-        sidebarOpen={sidebarOpen} 
-        setSidebarOpen={setSidebarOpen} 
-      />
-      
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+
       {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? "ml-[250px]" : "ml-0"}`}>
+      <div
+        className={`flex-1 transition-all duration-300 ${
+          sidebarOpen ? "ml-[250px]" : "ml-0"
+        }`}
+      >
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-green-50 to-green-100">
           <h1 className="text-4xl font-bold mb-8 text-green-800">
             What can I help you with?
