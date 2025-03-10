@@ -62,7 +62,7 @@ export default function ResearchPapersList({
 
         let accumulatedPapers: Paper[] = [];
         let accumulatedChunk = ""; // Buffer for incomplete chunks
-        let decoder = new TextDecoder();
+        const decoder = new TextDecoder();
 
         // Read the stream
         while (true) {
