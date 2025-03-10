@@ -61,6 +61,7 @@ export default function ResearchPapersList({
         }
 
         let accumulatedPapers: Paper[] = [];
+        let accumulatedChunk = ""; // Add buffer for incomplete chunks
 
         // Read the stream
         while (true) {
@@ -68,31 +69,42 @@ export default function ResearchPapersList({
 
           if (done) break;
 
-          // Convert the chunk to text
-          const chunk = new TextDecoder().decode(value);
-          console.log("chunk", chunk);
-          // Split by double newlines to get individual SSE messages
-          const messages = chunk.split("\n\n");
+          // Convert the chunk to text and add to accumulated buffer
+          const chunkText = new TextDecoder().decode(value);
+          console.log("chunk", chunkText);
+          accumulatedChunk += chunkText;
+
+          // Try to process complete messages from the buffer
+          const messages = accumulatedChunk.split("\n\n");
+          // Keep the last potentially incomplete message in the buffer
+          accumulatedChunk = messages.pop() || "";
+
           for (const message of messages) {
             if (!message.trim()) continue;
 
-            // Remove "data: " prefix and parse JSON
-            const data = JSON.parse(message.replace(/^data: /, ""));
-            console.log("data", data);
-            if (data.type === "initial") {
-              accumulatedPapers = data.papers;
-              setPapers(accumulatedPapers);
-              setLoading(false);
-            } else if (data.type === "author_details") {
-              setPapers((prevPapers) =>
-                prevPapers.map((paper) => ({
-                  ...paper,
-                  authors: paper.authors.map((author) => ({
-                    ...author,
-                    ...(data.updates[author.openAlexid] || {}),
-                  })),
-                }))
-              );
+            try {
+              // Remove "data: " prefix and parse JSON
+              const jsonStr = message.replace(/^data: /, "");
+              const data = JSON.parse(jsonStr);
+
+              if (data.type === "initial") {
+                accumulatedPapers = data.papers;
+                setPapers(accumulatedPapers);
+                setLoading(false);
+              } else if (data.type === "author_details") {
+                setPapers((prevPapers) =>
+                  prevPapers.map((paper) => ({
+                    ...paper,
+                    authors: paper.authors.map((author) => ({
+                      ...author,
+                      ...(data.updates[author.openAlexid] || {}),
+                    })),
+                  }))
+                );
+              }
+            } catch (parseError) {
+              console.error("Error parsing SSE message:", parseError);
+              // Continue processing other messages even if one fails
             }
           }
         }
