@@ -45,7 +45,7 @@ export default function ResearchPapersList({
             },
             body: JSON.stringify({
               query: selectedChallenge.name,
-              top_k: 10,
+              top_k: 5,
             }),
             signal: controller.signal,
           }
@@ -61,51 +61,17 @@ export default function ResearchPapersList({
         }
 
         let accumulatedPapers: Paper[] = [];
-        let accumulatedChunk = ""; // Buffer for incomplete chunks
-        const decoder = new TextDecoder();
+        let accumulatedChunk = ""; // Add buffer for incomplete chunks
 
         // Read the stream
         while (true) {
           const { done, value } = await reader.read();
 
-          if (done) {
-            // Process any remaining data in the buffer
-            if (accumulatedChunk.trim()) {
-              try {
-                // Try to process the final chunk if it's complete
-                const jsonStr = accumulatedChunk.replace(/^data: /, "");
-                const data = JSON.parse(jsonStr);
-
-                if (data.type === "initial") {
-                  accumulatedPapers = data.papers;
-                  setPapers(accumulatedPapers);
-                  setLoading(false);
-                } else if (data.type === "author_details") {
-                  // Handle author details update
-                  setPapers((prevPapers) =>
-                    prevPapers.map((paper) => ({
-                      ...paper,
-                      authors: paper.authors.map((author) => ({
-                        ...author,
-                        ...(data.updates[author.openAlexid] || {}),
-                      })),
-                    }))
-                  );
-                }
-              } catch (parseError) {
-                console.error("Error parsing final chunk:", parseError);
-                // If we can't parse the final chunk, at least make sure we're not in loading state
-                if (accumulatedPapers.length > 0) {
-                  setPapers(accumulatedPapers);
-                  setLoading(false);
-                }
-              }
-            }
-            break;
-          }
+          if (done) break;
 
           // Convert the chunk to text and add to accumulated buffer
-          const chunkText = decoder.decode(value, { stream: true });
+          const chunkText = new TextDecoder().decode(value);
+          console.log("chunk", chunkText);
           accumulatedChunk += chunkText;
 
           // Try to process complete messages from the buffer
@@ -137,12 +103,7 @@ export default function ResearchPapersList({
                 );
               }
             } catch (parseError) {
-              console.error(
-                "Error parsing SSE message:",
-                parseError,
-                "Message:",
-                message
-              );
+              console.error("Error parsing SSE message:", parseError);
               // Continue processing other messages even if one fails
             }
           }
@@ -152,11 +113,7 @@ export default function ResearchPapersList({
           // Handle abort error silently
           return;
         }
-        console.error("Fetch error:", err);
         setError((err as Error).message);
-        setLoading(false);
-      } finally {
-        // Ensure loading state is turned off even if there's an error
         setLoading(false);
       }
     };
