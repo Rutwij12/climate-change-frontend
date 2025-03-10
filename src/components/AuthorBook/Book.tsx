@@ -17,7 +17,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AuthorCRM, Status } from "@/types";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 
 const statusConfig: Record<string, string> = {
@@ -41,20 +47,58 @@ interface BookComponentProps {
   onDeleteAuthor: (id: number) => void;
 }
 
-export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus, onDeleteAuthor }: BookComponentProps) {
+export default function BookComponent({
+  authors,
+  onUpdateNotes,
+  onUpdateStatus,
+  onDeleteAuthor,
+}: BookComponentProps) {
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [localNotes, setLocalNotes] = useState<Record<number, string>>({});
   const router = useRouter();
+
+  // Initialize local notes from authors when component mounts or authors change
+  React.useEffect(() => {
+    const notesMap: Record<number, string> = {};
+    authors.forEach((author) => {
+      notesMap[author.id] = author.note;
+    });
+    setLocalNotes(notesMap);
+  }, [authors]);
+
+  const handleNotesChange = (id: number, value: string) => {
+    setLocalNotes((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleNotesSave = (id: number) => {
+    if (
+      localNotes[id] !== undefined &&
+      localNotes[id] !== authors.find((a) => a.id === id)?.note
+    ) {
+      onUpdateNotes(id, localNotes[id]);
+    }
+  };
 
   return (
     <div className="rounded-lg border border-emerald-300 overflow-hidden shadow-md">
       <Table>
         <TableHeader className="bg-emerald-100">
           <TableRow>
-            <TableHead className="text-emerald-900 font-bold text-center text-lg py-4">Author Name</TableHead>
-            <TableHead className="text-emerald-900 font-bold text-center text-lg py-4">Author Institution</TableHead>
-            <TableHead className="text-emerald-900 font-bold text-center text-lg py-4">Notes</TableHead>
-            <TableHead className="text-emerald-900 font-bold text-center text-lg py-4">Status</TableHead>
-            <TableHead className="text-emerald-900 font-bold text-center text-lg py-4">Actions</TableHead>
+            <TableHead className="text-emerald-900 font-bold text-center text-lg py-4">
+              Author Name
+            </TableHead>
+            <TableHead className="text-emerald-900 font-bold text-center text-lg py-4">
+              Author Institution
+            </TableHead>
+            <TableHead className="text-emerald-900 font-bold text-center text-lg py-4">
+              Notes
+            </TableHead>
+            <TableHead className="text-emerald-900 font-bold text-center text-lg py-4">
+              Status
+            </TableHead>
+            <TableHead className="text-emerald-900 font-bold text-center text-lg py-4">
+              Actions
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -72,19 +116,35 @@ export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus, 
                   {author.name}
                 </Button>
               </TableCell>
-              <TableCell className="text-center text-base">{(author.institution).split(",")[0].trim()}</TableCell>
+              <TableCell className="text-center text-base">
+                {author.institution.split(",")[0].trim()}
+              </TableCell>
               <TableCell className="text-center">
                 <Textarea
-                  value={author.note}
-                  onChange={(e) => onUpdateNotes(author.id, e.target.value)}
+                  value={
+                    localNotes[author.id] !== undefined
+                      ? localNotes[author.id]
+                      : author.note
+                  }
+                  onChange={(e) => handleNotesChange(author.id, e.target.value)}
+                  onBlur={() => handleNotesSave(author.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleNotesSave(author.id);
+                    }
+                  }}
                   className="min-h-[80px] border-emerald-200 focus:ring-emerald-500 focus:border-emerald-500 text-base mx-auto w-full"
-                  style={{ fontSize: '1rem' }}
+                  style={{ fontSize: "1rem" }}
                 />
               </TableCell>
               <TableCell className="text-center">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button className={`w-32 ${statusConfig[author.state]} text-base`} variant="ghost">
+                    <Button
+                      className={`w-32 ${statusConfig[author.state]} text-base`}
+                      variant="ghost"
+                    >
                       {statusOutput[author.state]}
                     </Button>
                   </DropdownMenuTrigger>
@@ -92,8 +152,12 @@ export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus, 
                     {Object.keys(statusConfig).map((status) => (
                       <DropdownMenuItem
                         key={status}
-                        onClick={() => onUpdateStatus(author.id, status as Status)}
-                        className={`${statusConfig[status as Status]} cursor-pointer text-base`}
+                        onClick={() =>
+                          onUpdateStatus(author.id, status as Status)
+                        }
+                        className={`${
+                          statusConfig[status as Status]
+                        } cursor-pointer text-base`}
                       >
                         {statusOutput[status]}
                       </DropdownMenuItem>
@@ -119,10 +183,18 @@ export default function BookComponent({ authors, onUpdateNotes, onUpdateStatus, 
         <Dialog open={true} onOpenChange={() => setConfirmDelete(null)}>
           <DialogContent className="text-center border-emerald-300 border-2">
             <DialogHeader>
-              <DialogTitle className="text-emerald-800 text-lg">Are you sure you want to remove this author?</DialogTitle>
+              <DialogTitle className="text-emerald-800 text-lg">
+                Are you sure you want to remove this author?
+              </DialogTitle>
             </DialogHeader>
             <DialogFooter className="flex justify-center gap-4">
-              <Button variant="outline" className="border-emerald-500 text-emerald-700 hover:bg-emerald-50 text-base px-6" onClick={() => setConfirmDelete(null)}>No</Button>
+              <Button
+                variant="outline"
+                className="border-emerald-500 text-emerald-700 hover:bg-emerald-50 text-base px-6"
+                onClick={() => setConfirmDelete(null)}
+              >
+                No
+              </Button>
               <Button
                 className="bg-red-500 hover:bg-red-600 text-white text-base px-6"
                 onClick={() => {
