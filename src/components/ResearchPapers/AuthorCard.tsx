@@ -62,7 +62,7 @@ export default function AuthorCard({
   const handleSeeGraph = () => {
     const author_id = author.openAlexid || "unknownAuthor";
     // Redirect to /graph with query parameters for authorid and paperid.
-    router.push(`/graph?authorid=${author_id}&paperid=${paperId}`);
+    router.push(`/graph?authorid=${author_id}`);
   };
 
   return (
